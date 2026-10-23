@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Train Reservation System Flow Diagram (PS-003)</title>
+  <desc id="desc">A styled flowchart showing initialization, booking, cancellation, chart preparation, segment-wise berth availability, promotion order, and fare and refund rules.</desc>
+  <defs>
+    <linearGradient id="navy" x2="0" y2="1"><stop stop-color="#254d79"/><stop offset="1" stop-color="#123456"/></linearGradient>
+    <linearGradient id="bluePanel" x2="0" y2="1"><stop stop-color="#eff7ff"/><stop offset="1" stop-color="#e4f0ff"/></linearGradient>
+    <linearGradient id="greenPanel" x2="0" y2="1"><stop stop-color="#f2fff5"/><stop offset="1" stop-color="#e8f8ec"/></linearGradient>
+    <linearGradient id="amberPanel" x2="0" y2="1"><stop stop-color="#fff9ed"/><stop offset="1" stop-color="#fff0d5"/></linearGradient>
+    <linearGradient id="purplePanel" x2="0" y2="1"><stop stop-color="#faf5ff"/><stop offset="1" stop-color="#f0e8ff"/></linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#29486a" flood-opacity=".14"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#183b5d"/></marker>
+    <style>
+      text{font-family:Arial,Helvetica,sans-serif;fill:#142b45}.title{font:bold 27px Georgia,serif;fill:#fff}.subtitle{font:bold 18px Georgia,serif;fill:#e8f1fb}.section{font:bold 21px Georgia,serif}.h{font:bold 15px Arial,sans-serif}.body{font:13px Arial,sans-serif}.small{font:12px Arial,sans-serif}.tiny{font:11px Arial,sans-serif}.white{fill:#fff}.muted{fill:#49627d}.card{stroke:#4c8bc5;stroke-width:1.2;rx:10;filter:url(#shadow)}.line{fill:none;stroke:#183b5d;stroke-width:2;marker-end:url(#arrow)}.thin{fill:none;stroke:#54718c;stroke-width:1.4;marker-end:url(#arrow)}.decision{fill:#fff1f1;stroke:#ed6767;stroke-width:1.5}.pill{stroke-width:1.2}
+    </style>
+  </defs>
+  <rect width="1600" height="1080" fill="#fff"/>
+  <rect x="510" y="16" width="580" height="60" rx="14" fill="url(#navy)"/>
+  <text x="800" y="43" text-anchor="middle" class="title">Train Reservation System</text>
+  <text x="800" y="65" text-anchor="middle" class="subtitle">Flow Diagram · PS-003</text>
+
+  <!-- Initialization band -->
+  <rect x="28" y="91" width="1544" height="155" rx="14" fill="url(#bluePanel)" stroke="#4c8bc5"/>
+  <circle cx="58" cy="116" r="17" fill="#174d81"/><text x="58" y="122" text-anchor="middle" class="h white">1</text>
+  <text x="88" y="123" class="section">System Initialization and Command Loop</text>
+  <rect x="72" y="143" width="330" height="82" rx="10" fill="#fff" stroke="#72a7d7"/>
+  <text x="90" y="164" class="h">Load Train Definition (JSON)</text>
+  <text x="90" y="184" class="body">12 stations and distances · SL / 3A / 2A</text><text x="90" y="202" class="body">Coaches, berth layouts, quotas and fare rules</text>
+  <path d="M406 184H445" class="line"/>
+  <rect x="452" y="143" width="340" height="82" rx="10" fill="#fff" stroke="#72a7d7"/>
+  <text x="470" y="164" class="h">Initialize Reservation Engine</text>
+  <text x="470" y="184" class="body">Index stations · create berth segment sets</text><text x="470" y="202" class="body">Prepare class quota and RAC / WL queues</text>
+  <path d="M796 184H835" class="line"/>
+  <rect x="842" y="143" width="330" height="82" rx="10" fill="#fff" stroke="#72a7d7"/>
+  <text x="860" y="164" class="h">Read Command File</text>
+  <text x="860" y="184" class="body">Parse JSON · process commands sequentially</text><text x="860" y="202" class="body">Keep state and log each transition</text>
+  <path d="M1176 184H1215" class="line"/>
+  <rect x="1222" y="153" width="300" height="62" rx="12" fill="#e1e7ff" stroke="#6576cf"/>
+  <text x="1372" y="180" text-anchor="middle" class="h">Process Next Command</text><text x="1372" y="199" text-anchor="middle" class="small">BOOK · CANCEL · STATUS · CHART</text>
+
+  <!-- Booking panel -->
+  <rect x="28" y="265" width="515" height="535" rx="15" fill="url(#greenPanel)" stroke="#64bd7f"/>
+  <path d="M29 281a15 15 0 0 1 15-15h485a15 15 0 0 1 15 15v34H29Z" fill="#c8efd1"/>
+  <circle cx="55" cy="290" r="17" fill="#148444"/><text x="55" y="296" text-anchor="middle" class="h white">2</text><text x="82" y="297" class="section">Booking Flow</text>
+  <rect x="153" y="324" width="264" height="34" rx="16" fill="#d8f8e1" stroke="#20a15b"/><text x="285" y="346" text-anchor="middle" class="h">Start Booking Request</text>
+  <path d="M285 359V372" class="thin"/>
+  <rect x="62" y="375" width="447" height="90" class="card" fill="#e4f2ff"/>
+  <text x="82" y="397" class="h">Validate Request</text>
+  <text x="82" y="417" class="body">Stations and route · 1–6 passengers · class and quota</text><text x="82" y="436" class="body">Gender / age eligibility · preference · child and family rules</text><text x="82" y="454" class="body">Reject invalid requests before changing inventory</text>
+  <path d="M285 466V477" class="thin"/>
+  <rect x="62" y="480" width="447" height="78" class="card" fill="#eee9ff" stroke="#9075d4"/>
+  <text x="82" y="502" class="h">Calculate Fare</text>
+  <text x="82" y="522" class="body">Class rate × chargeable distance · AC minimum 200 km</text><text x="82" y="541" class="body">Reservation fee · quota / senior rules · Tatkal premium · AC GST</text>
+  <path d="M285 559V570" class="thin"/>
+  <rect x="62" y="573" width="447" height="78" rx="10" fill="#fff2d8" stroke="#edaa3e"/>
+  <text x="82" y="595" class="h">Check Berth Availability</text>
+  <text x="82" y="615" class="body">Check every journey segment · prioritize eligible lower berths</text><text x="82" y="634" class="body">Keep family in one coach where possible · enforce quota and class limits</text>
+  <path d="M285 652V664" class="thin"/>
+  <polygon points="285,663 352,699 285,735 218,699" class="decision"/><text x="285" y="695" text-anchor="middle" class="h">Allocation path</text><text x="285" y="712" text-anchor="middle" class="small">CNF → RAC → WL</text>
+  <path d="M218 699H128V747" class="thin"/><path d="M285 735V747" class="thin"/><path d="M352 699H442V747" class="thin"/>
+  <rect x="52" y="750" width="150" height="38" rx="8" fill="#d9f6e1" stroke="#31a765"/><text x="127" y="774" text-anchor="middle" class="h">CONFIRMED</text>
+  <rect x="210" y="750" width="150" height="38" rx="8" fill="#fff0ce" stroke="#e8a72b"/><text x="285" y="774" text-anchor="middle" class="h">RAC</text>
+  <rect x="368" y="750" width="150" height="38" rx="8" fill="#ffe2e5" stroke="#e25764"/><text x="443" y="774" text-anchor="middle" class="h">WAITLIST</text>
+
+  <!-- Cancellation panel -->
+  <rect x="559" y="265" width="475" height="535" rx="15" fill="url(#amberPanel)" stroke="#e9a940"/>
+  <path d="M560 281a15 15 0 0 1 15-15h445a15 15 0 0 1 15 15v34H560Z" fill="#ffe2b0"/>
+  <circle cx="586" cy="290" r="17" fill="#db850d"/><text x="586" y="296" text-anchor="middle" class="h white">3</text><text x="613" y="297" class="section">Cancellation Flow</text>
+  <rect x="669" y="324" width="255" height="34" rx="16" fill="#fff0d4" stroke="#db971d"/><text x="796" y="346" text-anchor="middle" class="h">Start Cancellation</text>
+  <path d="M796 359V372" class="thin"/>
+  <rect x="600" y="375" width="393" height="72" class="card" fill="#e4f2ff"/>
+  <text x="620" y="397" class="h">Identify Ticket and Passengers</text><text x="620" y="417" class="body">Full or partial · verify current status</text><text x="620" y="436" class="body">Use cancellation timestamp against departure / chart</text>
+  <path d="M796 448V459" class="thin"/>
+  <rect x="600" y="462" width="393" height="92" class="card" fill="#eee9ff" stroke="#9075d4"/>
+  <text x="620" y="484" class="h">Calculate Refund and Reprice</text><text x="620" y="504" class="body">Apply time band and class minimum deduction</text><text x="620" y="523" class="body">RAC / WL: Rs 60 deduction before 30 minutes</text><text x="620" y="542" class="body">Tatkal CNF: no refund · recompute remaining concession</text>
+  <path d="M796 555V566" class="thin"/>
+  <rect x="600" y="569" width="393" height="68" rx="10" fill="#fff2d8" stroke="#edaa3e"/>
+  <text x="620" y="591" class="h">Cancel Passenger and Release Segments</text><text x="620" y="611" class="body">Mark CANCELLED · release only their occupied journey edges</text><text x="620" y="630" class="body">A cancelled RAC member leaves the other pair member intact</text>
+  <path d="M796 638V649" class="thin"/>
+  <rect x="600" y="652" width="393" height="82" rx="10" fill="#e4f8e9" stroke="#55b978"/>
+  <text x="620" y="674" class="h">Run Fit-Aware Promotion Engine</text><text x="620" y="694" class="body">Earliest compatible RAC → CNF; skip journeys that do not fit</text><text x="620" y="713" class="body">Then earliest WL → RAC · log each promotion and berth</text>
+  <path d="M796 735V746" class="thin"/>
+  <rect x="600" y="749" width="393" height="39" rx="9" fill="#e4f2ff" stroke="#4c8bc5"/>
+  <text x="796" y="774" text-anchor="middle" class="h">Update Passenger Statuses and Refund Ledger</text>
+
+  <!-- Chart panel -->
+  <rect x="1050" y="265" width="522" height="535" rx="15" fill="url(#purplePanel)" stroke="#9a78d4"/>
+  <path d="M1051 281a15 15 0 0 1 15-15h492a15 15 0 0 1 15 15v34h-522Z" fill="#e5d7ff"/>
+  <circle cx="1077" cy="290" r="17" fill="#683bb1"/><text x="1077" y="296" text-anchor="middle" class="h white">4</text><text x="1104" y="297" class="section">Chart Preparation Flow</text>
+  <rect x="1175" y="324" width="272" height="34" rx="16" fill="#efe6ff" stroke="#8055c6"/><text x="1311" y="346" text-anchor="middle" class="h">Start Chart Preparation</text>
+  <path d="M1311 359V372" class="thin"/>
+  <polygon points="1311,374 1383,411 1311,448 1239,411" class="decision"/><text x="1311" y="407" text-anchor="middle" class="h">At least 4 hours</text><text x="1311" y="424" text-anchor="middle" class="small">before departure?</text>
+  <path d="M1384 411H1423" class="thin"/><text x="1398" y="400" class="small">No</text>
+  <rect x="1428" y="390" width="123" height="44" rx="8" fill="#ffe2e5" stroke="#e25764"/><text x="1489" y="408" text-anchor="middle" class="small">Reject: too early</text><text x="1489" y="424" text-anchor="middle" class="tiny">No chart changes</text>
+  <path d="M1311 449V459" class="thin"/><text x="1323" y="461" class="tiny">Yes</text>
+  <rect x="1090" y="464" width="442" height="59" class="card" fill="#e4f2ff"/>
+  <text x="1110" y="486" class="h">Convert Unused Quota Capacity</text><text x="1110" y="507" class="body">Release unused LADIES / SENIOR / TATKAL quota to GENERAL</text>
+  <path d="M1311 524V534" class="thin"/>
+  <rect x="1090" y="537" width="442" height="58" class="card" fill="#e6f8eb" stroke="#55b978"/>
+  <text x="1110" y="559" class="h">Allocate Vacant Full Berths to RAC</text><text x="1110" y="580" class="body">Promote segment-compatible RAC passengers where possible</text>
+  <path d="M1311 596V606" class="thin"/>
+  <rect x="1090" y="609" width="442" height="59" class="card" fill="#fff2d8" stroke="#edaa3e"/>
+  <text x="1110" y="631" class="h">Finalize Coach and Berth Assignments</text><text x="1110" y="652" class="body">Build final CNF / RAC passenger placement for each coach</text>
+  <path d="M1311 669V679" class="thin"/>
+  <rect x="1090" y="682" width="442" height="48" class="card" fill="#ffe8e9" stroke="#e57b81"/>
+  <text x="1110" y="703" class="h">Auto-Cancel Remaining Waitlist</text><text x="1110" y="720" class="body">Set CANCELLED and issue full refund after chart</text>
+  <path d="M1311 731V741" class="thin"/>
+  <rect x="1090" y="744" width="442" height="44" rx="9" fill="#e4f2ff" stroke="#4c8bc5"/>
+  <text x="1311" y="772" text-anchor="middle" class="h">Print Coach Chart · Final Status · Event Log</text>
+
+  <!-- Supporting panels -->
+  <rect x="28" y="817" width="490" height="238" rx="14" fill="#fff5f5" stroke="#e87982"/>
+  <path d="M29 832a14 14 0 0 1 14-14h460a14 14 0 0 1 14 14v35H29Z" fill="#ffdfe2"/>
+  <circle cx="55" cy="842" r="16" fill="#d9404e"/><text x="55" y="848" text-anchor="middle" class="h white">5</text><text x="82" y="849" class="section">Berth Availability · Segment-Wise</text>
+  <text x="58" y="892" class="h">A</text><text x="170" y="892" class="h">B</text><text x="282" y="892" class="h">C</text><text x="394" y="892" class="h">D</text>
+  <path d="M65 910H411" stroke="#315b84" stroke-width="4"/><circle cx="65" cy="910" r="7" fill="#173d62"/><circle cx="180" cy="910" r="7" fill="#173d62"/><circle cx="295" cy="910" r="7" fill="#173d62"/><circle cx="411" cy="910" r="7" fill="#173d62"/>
+  <rect x="53" y="933" width="183" height="48" rx="8" fill="#e4f2ff" stroke="#4c8bc5"/><text x="144" y="952" text-anchor="middle" class="small">Request A → C</text><text x="144" y="969" text-anchor="middle" class="small">needs segments A–B and B–C</text>
+  <path d="M239 957H267" class="thin"/>
+  <polygon points="330,927 393,957 330,987 267,957" class="decision"/><text x="330" y="953" text-anchor="middle" class="small">All edges</text><text x="330" y="968" text-anchor="middle" class="small">free?</text>
+  <path d="M394 957H427" class="thin"/><rect x="430" y="939" width="72" height="38" rx="7" fill="#ffe2e5" stroke="#e25764"/><text x="466" y="962" text-anchor="middle" class="tiny">Try next</text>
+  <text x="54" y="1018" class="small">A → B and B → C can reuse one berth; a shared station alone is not overlap.</text>
+
+  <rect x="535" y="817" width="495" height="238" rx="14" fill="#f3fff5" stroke="#66bd7f"/>
+  <path d="M536 832a14 14 0 0 1 14-14h467a14 14 0 0 1 14 14v35H536Z" fill="#d7f3de"/>
+  <circle cx="562" cy="842" r="16" fill="#20934e"/><text x="562" y="848" text-anchor="middle" class="h white">6</text><text x="589" y="849" class="section">Promotion Sequence</text><text x="988" y="848" text-anchor="end" class="small">Cancellation or chart</text>
+  <circle cx="577" cy="893" r="16" fill="#2b83cf"/><text x="577" y="899" text-anchor="middle" class="h white">1</text><text x="608" y="890" class="h">Earliest compatible RAC → CNF</text><text x="608" y="908" class="small">Take a vacant berth when every journey segment fits.</text>
+  <circle cx="577" cy="931" r="16" fill="#e5a91c"/><text x="577" y="937" text-anchor="middle" class="h white">2</text><text x="608" y="928" class="h">Skip to next RAC if needed</text><text x="608" y="946" class="small">A shorter later journey may fit when an earlier one cannot.</text>
+  <circle cx="577" cy="969" r="16" fill="#e78019"/><text x="577" y="975" text-anchor="middle" class="h white">3</text><text x="608" y="966" class="h">Earliest WL → RAC</text><text x="608" y="984" class="small">Use a released RAC slot; retain stable queue order.</text>
+  <circle cx="577" cy="1007" r="16" fill="#d94c5a"/><text x="577" y="1013" text-anchor="middle" class="h white">4</text><text x="608" y="1004" class="h">Log every state transition</text><text x="608" y="1022" class="small">Record passenger, old / new status, berth, and reason.</text>
+
+  <rect x="1047" y="817" width="525" height="238" rx="14" fill="#f2f7ff" stroke="#6d9ccc"/>
+  <path d="M1048 832a14 14 0 0 1 14-14h497a14 14 0 0 1 14 14v35h-525Z" fill="#dcecff"/>
+  <circle cx="1074" cy="842" r="16" fill="#2869a8"/><text x="1074" y="848" text-anchor="middle" class="h white">7</text><text x="1101" y="849" class="section">Fare and Refund Rules</text>
+  <text x="1070" y="890" class="h">Fare</text>
+  <text x="1070" y="910" class="small">Rate × distance · AC minimum 200 km</text><text x="1070" y="927" class="small">Reservation: Rs 20 SL / 40 3A / 60 2A</text><text x="1070" y="944" class="small">AC GST 5% · Tatkal +30%, no concession</text><text x="1070" y="961" class="small">Senior concession: men 40%, women 50%</text><text x="1070" y="978" class="small">Child under 5: no berth and no fare</text>
+  <path d="M1314 879V1030" stroke="#a9bfd5"/>
+  <text x="1335" y="890" class="h">Confirmed Cancellation</text><text x="1335" y="910" class="small">48h+: 75% refund, minimum deduction applies</text><text x="1335" y="927" class="small">12–48h: 50% · 4–12h: 25%</text><text x="1335" y="944" class="small">After chart: nil · Tatkal CNF: nil</text><text x="1335" y="961" class="small">RAC / WL: Rs 60 deduction before 30 min</text><text x="1335" y="978" class="small">Post-chart WL: auto-cancel, full refund</text>
+
+  <rect x="690" y="1061" width="220" height="12" rx="6" fill="url(#navy)"/>
+</svg>
+
