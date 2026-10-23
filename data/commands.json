@@ -1,0 +1,6 @@
+[
+  {"type":"book","id":"B001","at":"2026-11-01T09:00:00+05:30","class":"SL","from":"Central","to":"Lakeview","quota":"GENERAL","passengers":[{"id":"P001","name":"Asha","age":32,"gender":"F","berthPreference":"LOWER"}]},
+  {"type":"book","id":"B002","at":"2026-11-01T09:02:00+05:30","class":"SL","from":"Lakeview","to":"Hilltown","quota":"GENERAL","passengers":[{"id":"P002","name":"Dev","age":40,"gender":"M"}]},
+  {"type":"status","at":"2026-11-01T09:03:00+05:30","bookingId":"B001"},
+  {"type":"chart","at":"2026-11-08T04:00:00+05:30"}
+]
