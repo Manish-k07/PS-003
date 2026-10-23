@@ -40,6 +40,7 @@ The [five-minute demo recording script](docs/demo-script.md) is ready for record
 - `docs/data-flow.md` — diagram page with explanatory notes
 - `docs/demo-script.md` — timed outline for the five-minute submission video
 - `output/pdf/ps-003-design.pdf` — submission-ready design PDF
+- `scripts/build-design-pdf.js` — dependency-free JavaScript PDF builder (`npm run build:design-pdf`)
 - `test/engine.test.js` — Node built-in test suite covering segment allocation, quotas, RAC/WL promotion, partial cancellation and charting
 
 ## Scope notes
