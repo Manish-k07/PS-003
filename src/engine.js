@@ -1,30 +1,75 @@
-const ACTIVE = new Set(["CNF", "RAC", "WL"]);
-const money = n => Math.round(n);
-const hoursBetween = (later, earlier) => (Date.parse(later) - Date.parse(earlier)) / 3600000;
+const QUEUED = new Set(["RAC", "WL"]);
+const money = value => Math.round(value);
+const hoursUntil = (departure, at) => (Date.parse(departure) - Date.parse(at)) / 3_600_000;
+const overlaps = (left, right) => left.some(segment => right.includes(segment));
 
 export class ReservationEngine {
   constructor(train) {
+    this.validateTrain(train);
     this.train = train;
-    this.stationIndex = new Map(train.route.map((s, i) => [s.name, i]));
+    this.stationIndex = new Map(train.route.map((station, index) => [station.name, index]));
     this.berths = new Map();
     this.bookings = new Map();
     this.passengerIds = new Set();
-    this.queues = Object.fromEntries(Object.keys(train.classes).map(c => [c, { rac: [], wl: [] }]));
+    this.queues = Object.fromEntries(Object.keys(train.classes).map(code => [code, { rac: [], wl: [] }]));
+    this.racPairs = Object.fromEntries(Object.keys(train.classes).map(code => [code, []]));
     this.events = [];
     this.chartPrepared = false;
+    this.lastCommandAt = null;
+
     for (const [classCode, spec] of Object.entries(train.classes)) {
-      for (const coach of spec.coaches) coach.berths.forEach((type, i) => {
-        const id = `${coach.id}-${String(i + 1).padStart(2, "02")}`;
-        this.berths.set(id, { id, coach: coach.id, classCode, type, occupied: new Set(), confirmed: [] });
-      });
+      for (const coach of spec.coaches) {
+        coach.berths.forEach((type, index) => {
+          const id = `${coach.id}-${String(index + 1).padStart(2, "02")}`;
+          this.berths.set(id, { id, coach: coach.id, classCode, type, allocations: [], occupancy: new Uint8Array(train.route.length - 1) });
+        });
+      }
+    }
+  }
+
+  validateTrain(train) {
+    if (!train || !Array.isArray(train.route) || train.route.length !== 12) throw new Error("Train definition must contain exactly 12 route stations");
+    if (Number.isNaN(Date.parse(train.departure))) throw new Error("Train departure must be a valid ISO timestamp");
+    const names = new Set();
+    let priorDistance = -1;
+    for (const station of train.route) {
+      if (!station.name || names.has(station.name) || !Number.isFinite(station.distance) || station.distance <= priorDistance) throw new Error("Route needs unique station names and strictly increasing distances");
+      names.add(station.name);
+      priorDistance = station.distance;
+    }
+    if (!train.classes || !Object.keys(train.classes).length) throw new Error("Train definition must have at least one class");
+    const coachIds = new Set();
+    for (const [code, spec] of Object.entries(train.classes)) {
+      if (!spec.coaches?.length || !spec.quotas || !Object.keys(spec.quotas).length) throw new Error(`Class ${code} needs coaches and quota counts`);
+      if (!Number.isFinite(spec.ratePerKm) || spec.ratePerKm <= 0 || !Number.isFinite(spec.reservationFee) || spec.reservationFee < 0) throw new Error(`Class ${code} needs a valid fare rate and reservation fee`);
+      if (spec.fareSlabs) {
+        let previousUpper = 0;
+        spec.fareSlabs.forEach((slab, index) => {
+          if (!Number.isFinite(slab.ratePerKm) || slab.ratePerKm <= 0 || (slab.upToKm !== null && (!Number.isFinite(slab.upToKm) || slab.upToKm <= previousUpper))) throw new Error(`Invalid distance fare slab for ${code}`);
+          if (slab.upToKm === null && index !== spec.fareSlabs.length - 1) throw new Error(`Unbounded fare slab must be last for ${code}`);
+          if (slab.upToKm !== null) previousUpper = slab.upToKm;
+        });
+        if (spec.fareSlabs.at(-1)?.upToKm !== null) throw new Error(`Distance fare slabs for ${code} need a final unbounded slab`);
+      }
+      for (const [quota, count] of Object.entries(spec.quotas)) if (!Number.isInteger(count) || count < 0) throw new Error(`Invalid ${quota} quota count for ${code}`);
+      for (const coach of spec.coaches) {
+        if (!coach.id || coachIds.has(coach.id) || !coach.berths?.length) throw new Error(`Invalid or duplicate coach ${coach.id}`);
+        if (coach.berths.some(type => !["LOWER", "MIDDLE", "UPPER", "SIDE_LOWER", "SIDE_UPPER"].includes(type))) throw new Error(`Unknown berth type in coach ${coach.id}`);
+        coachIds.add(coach.id);
+      }
     }
   }
 
   execute(command) {
-    if (!command || !command.type || !command.at || Number.isNaN(Date.parse(command.at))) throw new Error("Every command requires a valid ISO timestamp and type");
-    const result = ({ book: () => this.book(command), cancel: () => this.cancel(command), status: () => this.status(command), chart: () => this.prepareChart(command) })[command.type];
-    if (!result) throw new Error(`Unknown command type: ${command.type}`);
-    const event = result();
+    if (!command || typeof command !== "object" || !command.type) throw new Error("Command requires a type");
+    if (typeof command.at !== "string" || !/(Z|[+-]\d{2}:\d{2})$/.test(command.at) || Number.isNaN(Date.parse(command.at))) {
+      throw new Error("Every command requires a valid ISO timestamp with timezone");
+    }
+    if (this.lastCommandAt && Date.parse(command.at) < Date.parse(this.lastCommandAt)) throw new Error("Commands must be in chronological order");
+    const handlers = { book: () => this.book(command), cancel: () => this.cancel(command), status: () => this.status(command), chart: () => this.prepareChart(command) };
+    if (!handlers[command.type]) throw new Error(`Unknown command type: ${command.type}`);
+    const event = handlers[command.type]();
+    this.lastCommandAt = command.at;
     this.events.push(event);
     return event;
   }
@@ -32,235 +77,579 @@ export class ReservationEngine {
   trip(from, to) {
     const start = this.stationIndex.get(from), end = this.stationIndex.get(to);
     if (start === undefined || end === undefined || start >= end) throw new Error(`Invalid journey ${from} → ${to}`);
-    return { start, end, segments: Array.from({ length: end - start }, (_, i) => start + i) };
+    return { start, end, segments: Array.from({ length: end - start }, (_, index) => start + index) };
   }
 
-  berthCount(classCode) { return [...this.berths.values()].filter(b => b.classCode === classCode).length; }
+  classBerths(classCode) { return [...this.berths.values()].filter(berth => berth.classCode === classCode); }
+  berthCount(classCode) { return this.classBerths(classCode).length; }
   capacity(classCode, kind) {
-    const count = this.berthCount(classCode);
-    const pct = kind === "rac" ? 0.1 : 0.3;
-    return count ? Math.max(1, Math.floor(count * pct)) : 0;
+    const count = this.berthCount(classCode), percent = kind === "rac" ? 0.1 : 0.3;
+    return count ? Math.max(1, Math.floor(count * percent)) : 0;
   }
-  berthFits(berth, trip) { return trip.segments.every(s => !berth.occupied.has(s)); }
-  isPriority(p) { return (p.gender === "M" && p.age >= 60) || (p.gender === "F" && p.age >= 45); }
-  eligibleForQuota(passengers, quota) {
-    if (quota === "LADIES" && passengers.some(p => p.gender !== "F")) throw new Error("LADIES quota requires an all-female booking");
-    if (quota === "SENIOR" && !passengers.some(p => (p.gender === "M" && p.age >= 60) || (p.gender === "F" && p.age >= 58))) throw new Error("SENIOR quota requires a qualifying senior passenger");
+  isPriority(passenger) { return (passenger.gender === "M" && passenger.age >= 60) || (passenger.gender === "F" && passenger.age >= 45); }
+  eligibleSenior(passenger) { return (passenger.gender === "M" && passenger.age >= 60) || (passenger.gender === "F" && passenger.age >= 58); }
+  isInfant(passenger) { return passenger.age < 5; }
+  isChild(passenger) { return passenger.age < 12; }
+  isActive(passenger) { return passenger.status !== "CANCELLED"; }
+  activeInQueue(classCode, type) { return this.queues[classCode][type].filter(passenger => passenger.status === type.toUpperCase()); }
+  activeInAll(status) { return Object.values(this.queues).flatMap(queue => queue[status.toLowerCase()]).filter(passenger => passenger.status === status); }
+
+  validateQuota(passengers, quota) {
+    if (quota === "LADIES" && passengers.some(passenger => passenger.gender !== "F")) throw new Error("LADIES quota requires an all-female booking");
+    if (quota === "SENIOR" && !passengers.some(passenger => this.eligibleSenior(passenger))) throw new Error("SENIOR quota requires a man aged 60+ or woman aged 58+");
+    if (passengers.some(passenger => !["M", "F"].includes(passenger.gender))) throw new Error("Passenger gender must be M or F");
+    const children = passengers.filter(passenger => this.isChild(passenger));
+    if (children.length && !passengers.some(passenger => passenger.age >= 18)) throw new Error("Every passenger under 12 must travel with an adult aged 18 or older");
   }
 
-  book(c) {
+  book(command) {
     if (this.chartPrepared) throw new Error("Bookings are closed after chart preparation");
-    if (this.bookings.has(c.id)) throw new Error(`Duplicate booking id ${c.id}`);
-    const spec = this.train.classes[c.class];
-    if (!spec) throw new Error(`Unknown class ${c.class}`);
-    if (!Object.hasOwn(spec.quotas, c.quota)) throw new Error(`Unknown quota ${c.quota}`);
-    if (!Array.isArray(c.passengers) || c.passengers.length < 1 || c.passengers.length > 6) throw new Error("A booking must include 1–6 passengers");
-    const trip = this.trip(c.from, c.to);
-    if (c.quota === "TATKAL" && hoursBetween(this.train.departure, c.at) > 24) throw new Error("TATKAL opens 24 hours before departure");
-    this.eligibleForQuota(c.passengers, c.quota);
-    for (const p of c.passengers) {
-      if (!p.id || this.passengerIds.has(p.id)) throw new Error(`Missing or duplicate passenger id ${p.id}`);
-      if (!Number.isFinite(p.age) || p.age < 0) throw new Error(`Invalid age for ${p.id}`);
+    if (!command.id || this.bookings.has(command.id)) throw new Error(`Missing or duplicate booking id ${command.id ?? ""}`);
+    const spec = this.train.classes[command.class];
+    if (!spec) throw new Error(`Unknown class ${command.class}`);
+    if (!Object.hasOwn(spec.quotas, command.quota)) throw new Error(`Unknown quota ${command.quota}`);
+    if (!Array.isArray(command.passengers) || command.passengers.length < 1 || command.passengers.length > 6) throw new Error("A booking must include 1–6 passengers");
+    const trip = this.trip(command.from, command.to);
+    if (hoursUntil(this.train.departure, command.at) < 0) throw new Error("Bookings are closed after departure");
+    if (command.quota === "TATKAL" && hoursUntil(this.train.departure, command.at) > 24) throw new Error("TATKAL opens 24 hours before departure");
+    for (const passenger of command.passengers) {
+      if (!passenger.id || this.passengerIds.has(passenger.id)) throw new Error(`Missing or duplicate passenger id ${passenger.id ?? ""}`);
+      if (!Number.isInteger(passenger.age) || passenger.age < 0) throw new Error(`Invalid age for ${passenger.id}`);
     }
-    const passengers = c.passengers.map((p, order) => ({ ...p, bookingId: c.id, order, from: c.from, to: c.to, classCode: c.class, quota: c.quota,
-      status: p.age < 5 ? "NO_BERTH" : "PENDING", berthId: null, racPair: null, fare: 0, refund: 0 }));
-    const booking = { id: c.id, classCode: c.class, quota: c.quota, trip, from: c.from, to: c.to, at: c.at, passengers, canceled: false, paid: 0, refunded: 0 };
-    const allocated = this.allocateConfirmed(booking, passengers.filter(p => p.status === "PENDING"));
-    const outstanding = passengers.filter(p => p.status === "PENDING");
-    const availableRac = this.capacity(c.class, "rac") - this.activeInQueue(c.class, "rac").length;
-    const toRac = outstanding.slice(0, Math.max(0, availableRac));
-    const toWl = outstanding.slice(toRac.length);
-    const availableWl = this.capacity(c.class, "wl") - this.activeInQueue(c.class, "wl").length;
-    if (toWl.length > availableWl) {
-      for (const p of allocated) this.releasePassenger(p);
-      throw new Error(`Waitlist limit exceeded for ${c.class}; booking rejected atomically`);
+    this.validateQuota(command.passengers, command.quota);
+
+    const passengers = command.passengers.map((passenger, order) => ({
+      ...passenger,
+      bookingId: command.id,
+      order,
+      from: command.from,
+      to: command.to,
+      classCode: command.class,
+      quota: command.quota,
+      status: this.isInfant(passenger) ? "NO_BERTH" : "PENDING",
+      berthId: null,
+      coachId: null,
+      racPair: null,
+      fare: 0,
+      refund: 0
+    }));
+    const booking = {
+      id: command.id, classCode: command.class, quota: command.quota, trip,
+      from: command.from, to: command.to, at: command.at, passengers,
+      totalPaid: 0, refunded: 0, currentFare: 0, canceled: false
+    };
+
+    const quotaSlots = Math.max(0, spec.quotas[command.quota] - this.confirmedQuotaCount(command.class, command.quota));
+    const confirmed = this.allocateConfirmed(booking, passengers.filter(passenger => passenger.status === "PENDING"), quotaSlots);
+    const pending = passengers.filter(passenger => passenger.status === "PENDING");
+    const racPlan = this.planRac(booking, pending);
+    const racPeople = new Set(racPlan.flatMap(plan => plan.passengers));
+    const waitlisted = pending.filter(passenger => !racPeople.has(passenger));
+    const wlRoom = this.capacity(command.class, "wl") - this.activeInQueue(command.class, "wl").length;
+    if (waitlisted.length > wlRoom) {
+      for (const passenger of confirmed) this.releaseConfirmed(passenger);
+      throw new Error(`Waitlist limit exceeded for ${command.class}; booking rejected atomically`);
     }
-    this.assignRac(booking, toRac);
-    toWl.forEach(p => { p.status = "WL"; this.queues[c.class].wl.push(p); });
-    passengers.filter(p => p.status === "NO_BERTH").forEach(p => {});
-    this.priceBooking(booking);
-    booking.paid = passengers.reduce((n, p) => n + p.fare, 0);
-    this.bookings.set(c.id, booking);
-    passengers.forEach(p => this.passengerIds.add(p.id));
-    return { type: "booked", bookingId: c.id, class: c.class, quota: c.quota, fare: booking.paid, passengers: this.passengerSnapshot(booking), promotions: [] };
+
+    this.applyRacPlan(command.class, racPlan);
+    waitlisted.forEach(passenger => { passenger.status = "WL"; this.queues[command.class].wl.push(passenger); });
+    this.reprice(booking);
+    booking.totalPaid = passengers.reduce((sum, passenger) => sum + passenger.fare, 0);
+    booking.currentFare = booking.totalPaid;
+    this.bookings.set(command.id, booking);
+    passengers.forEach(passenger => this.passengerIds.add(passenger.id));
+    return { type: "booked", bookingId: command.id, class: command.class, quota: command.quota, fare: booking.totalPaid, passengers: this.passengerSnapshot(booking), promotions: [] };
   }
 
-  allocateConfirmed(booking, candidates) {
-    const ordered = [...candidates].sort((a, b) => Number(this.isPriority(b)) - Number(this.isPriority(a)) || a.order - b.order);
+  confirmedQuotaCount(classCode, quota) {
+    return [...this.bookings.values()].filter(booking => booking.classCode === classCode && booking.quota === quota)
+      .flatMap(booking => booking.passengers).filter(passenger => passenger.status === "CNF").length;
+  }
+
+  passengerSegments(passenger) { return this.trip(passenger.from, passenger.to).segments; }
+  berthFits(berth, trip, ignorePassenger = null) {
+    const ignoredPair = ignorePassenger?.racPair;
+    const ignoredHere = ignoredPair?.berthId === berth.id && ignoredPair.members.includes(ignorePassenger);
+    const remainingPairSegments = ignoredHere
+      ? new Set(ignoredPair.members.filter(member => member !== ignorePassenger).flatMap(member => this.passengerSegments(member)))
+      : null;
+    return trip.segments.every(segment => {
+      let count = berth.occupancy[segment] ?? 0;
+      if (ignoredHere && ignoredPair.segments.includes(segment) && !remainingPairSegments.has(segment)) count -= 1;
+      return count === 0;
+    });
+  }
+
+  berthScore(berth, passenger, familyCoach = null) {
+    const preferred = String(passenger.berthPreference || "").toUpperCase();
+    let score = 0;
+    if (this.isPriority(passenger) && berth.type === "LOWER") score += 100;
+    else if (!this.isPriority(passenger) && preferred && berth.type === preferred) score += 50;
+    if (familyCoach && berth.coach === familyCoach) score += 25;
+    return score;
+  }
+  optionsFor(passenger, classCode, trip, coach = null, familyCoach = null) {
+    return this.classBerths(classCode).filter(berth => (!coach || berth.coach === coach) && this.berthFits(berth, trip))
+      .sort((a, b) => this.berthScore(b, passenger, familyCoach) - this.berthScore(a, passenger, familyCoach) || a.id.localeCompare(b.id));
+  }
+  addConfirmed(passenger, berth) {
+    const allocation = { type: "CNF", members: [passenger], segments: this.passengerSegments(passenger) };
+    berth.allocations.push(allocation);
+    for (const segment of allocation.segments) berth.occupancy[segment] += 1;
+    passenger.status = "CNF";
+    passenger.berthId = berth.id;
+    passenger.coachId = berth.coach;
+    passenger.allocation = allocation;
+  }
+
+  planInCoach(passengers, booking, coachId, remainingQuota) {
+    if (passengers.length > remainingQuota) return null;
+    const picked = new Set(), plan = [];
+    const ordered = [...passengers].sort((a, b) => Number(this.isPriority(b)) - Number(this.isPriority(a)) || a.order - b.order);
+    for (const passenger of ordered) {
+      const berth = this.optionsFor(passenger, booking.classCode, booking.trip, coachId).find(option => !picked.has(option.id));
+      if (!berth) return null;
+      picked.add(berth.id);
+      plan.push({ passenger, berth });
+    }
+    return plan;
+  }
+
+  allocateConfirmed(booking, candidates, quotaSlots) {
+    if (!candidates.length || quotaSlots <= 0) return [];
+    let remaining = quotaSlots;
     const allocated = [];
-    const classBerths = [...this.berths.values()].filter(b => b.classCode === booking.classCode);
-    const quotaRemaining = this.train.classes[booking.classCode].quotas[booking.quota];
-    const occupiedQuota = [...this.bookings.values()].filter(b => b.classCode === booking.classCode && b.quota === booking.quota)
-      .flatMap(b => b.passengers).filter(p => p.status === "CNF").length;
-    const quotaSlots = Math.max(0, quotaRemaining - occupiedQuota);
-    for (const p of ordered) {
-      if (allocated.length >= quotaSlots) continue;
-      let options = classBerths.filter(b => this.berthFits(b, booking.trip));
-      const preferred = String(p.berthPreference || "").toUpperCase();
-      if (preferred) options.sort((a, b) => Number(b.type === preferred) - Number(a.type === preferred));
-      if (this.isPriority(p)) options.sort((a, b) => Number(b.type === "LOWER") - Number(a.type === "LOWER"));
-      // Prefer a coach already used by this booking, keeping family groups together where feasible.
-      const familyCoaches = new Set(allocated.map(a => this.berths.get(a.berthId)?.coach));
-      options.sort((a, b) => Number(familyCoaches.has(b.coach)) - Number(familyCoaches.has(a.coach)));
-      const berth = options[0];
-      if (!berth) continue;
-      p.status = "CNF"; p.berthId = berth.id; berth.confirmed.push(p); booking.trip.segments.forEach(s => berth.occupied.add(s)); allocated.push(p);
+    const seatCandidates = candidates.filter(passenger => !this.isInfant(passenger));
+    // First try to seat the whole booking in one coach, which is the best family outcome.
+    if (seatCandidates.length <= remaining) {
+      for (const coach of this.classBerths(booking.classCode).map(berth => berth.coach).filter((id, index, all) => all.indexOf(id) === index)) {
+        const plan = this.planInCoach(seatCandidates, booking, coach, remaining);
+        if (plan) {
+          for (const item of plan) { this.addConfirmed(item.passenger, item.berth); allocated.push(item.passenger); }
+          return allocated;
+        }
+      }
+    }
+
+    // Reserve each under-12 child with an adult. If the pair cannot be seated in one coach,
+    // neither is split; remaining unrelated adults can still be assigned independently.
+    const children = seatCandidates.filter(passenger => this.isChild(passenger));
+    const adults = seatCandidates.filter(passenger => passenger.age >= 18);
+    const familyGroups = new Map();
+    const childAdult = new Map();
+    for (const child of children) {
+      const adult = adults.find(candidate => ![...(familyGroups.get(candidate.id) || [])].includes(child));
+      if (!adult) continue;
+      childAdult.set(child.id, adult);
+      if (!familyGroups.has(adult.id)) familyGroups.set(adult.id, [adult]);
+      familyGroups.get(adult.id).push(child);
+    }
+    const grouped = new Set();
+    const orderedGroups = [...familyGroups.values()].sort((a, b) => Number(b.some(this.isPriority.bind(this))) - Number(a.some(this.isPriority.bind(this))) || Math.min(...a.map(p => p.order)) - Math.min(...b.map(p => p.order)));
+    for (const group of orderedGroups) {
+      group.forEach(passenger => grouped.add(passenger.id));
+      if (group.length > remaining) continue;
+      let plan = null;
+      for (const coach of this.classBerths(booking.classCode).map(berth => berth.coach).filter((id, index, all) => all.indexOf(id) === index)) {
+        plan = this.planInCoach(group, booking, coach, remaining);
+        if (plan) break;
+      }
+      if (plan) {
+        for (const item of plan) { this.addConfirmed(item.passenger, item.berth); allocated.push(item.passenger); remaining -= 1; }
+      }
+    }
+
+    const individual = seatCandidates.filter(passenger => !grouped.has(passenger.id))
+      .sort((a, b) => Number(this.isPriority(b)) - Number(this.isPriority(a)) || a.order - b.order);
+    for (const passenger of individual) {
+      if (remaining <= 0) break;
+      const berth = this.optionsFor(passenger, booking.classCode, booking.trip)[0];
+      if (berth) { this.addConfirmed(passenger, berth); allocated.push(passenger); remaining -= 1; }
     }
     return allocated;
   }
 
-  assignRac(booking, people) {
-    for (let i = 0; i < people.length; i += 1) {
-      const p = people[i]; p.status = "RAC";
-      const partner = this.activeInQueue(booking.classCode, "rac").find(q => q.racPair && q.racPair.open && q.racPair.members.every(member => {
-        const used = this.trip(member.from, member.to).segments;
-        return booking.trip.segments.every(s => !used.includes(s));
-      }));
-      if (partner) { p.racPair = partner.racPair; p.racPair.members.push(p); booking.trip.segments.forEach(s => p.racPair.occupied.add(s)); }
-      else {
-        const berth = [...this.berths.values()].find(b => b.classCode === booking.classCode && b.type === "SIDE_LOWER" && this.berthFits(b, booking.trip));
-        const pair = { id: `RAC-${booking.classCode}-${booking.id}-${p.id}`, berthId: berth?.id ?? null, members: [p], occupied: new Set(booking.trip.segments), open: true };
-        p.racPair = pair;
-        if (berth) booking.trip.segments.forEach(s => berth.occupied.add(s));
+  makeRacPlanForGroup(booking, people, virtualPairs, createdPairs) {
+    if (!people.length || people.length > 2) return null;
+    const child = people.find(person => this.isChild(person));
+    const familyCoach = child && !people.some(person => person.age >= 18) ? this.relatedAdultCoach(child) : null;
+    let pair = virtualPairs.find(candidate => candidate.classCode === booking.classCode && candidate.members.length + candidate.reserved < 2 &&
+      (!familyCoach || this.berths.get(candidate.berthId)?.coach === familyCoach));
+    if (!pair) {
+      const candidateBerth = this.classBerths(booking.classCode).find(berth => berth.type === "SIDE_LOWER" && (!familyCoach || berth.coach === familyCoach) &&
+        !virtualPairs.some(candidate => !candidate.existing && candidate.berthId === berth.id && overlaps(candidate.segments, people.flatMap(person => this.trip(person.from, person.to).segments))) &&
+        people.every(person => this.berthFits(berth, this.trip(person.from, person.to))));
+      if (!candidateBerth) return null;
+      pair = { classCode: booking.classCode, berthId: candidateBerth.id, members: [], reserved: 0, existing: false, bookingId: booking.id, segments: [] };
+      virtualPairs.push(pair);
+      createdPairs.push(pair);
+    }
+    if (pair.members.length + pair.reserved + people.length > 2) return null;
+    pair.reserved += people.length;
+    pair.segments = [...new Set([...pair.segments, ...people.flatMap(person => this.trip(person.from, person.to).segments)])];
+    return { pair, passengers: people };
+  }
+
+  planRac(booking, pending) {
+    const classCode = booking.classCode, racRemaining = this.capacity(classCode, "rac") - this.activeInQueue(classCode, "rac").length;
+    if (racRemaining <= 0) return [];
+    const virtualPairs = this.racPairs[classCode].filter(pair => pair.open).map(pair => ({
+      classCode, berthId: pair.berthId, members: [...pair.members], reserved: 0, existing: true, pair, segments: [...pair.segments]
+    }));
+    const createdPairs = [], plan = [], assigned = new Set();
+    const children = pending.filter(passenger => this.isChild(passenger));
+    const adults = pending.filter(passenger => passenger.age >= 18);
+    const familyGroups = children.length && adults.length ? [[adults[0], ...children]] : [];
+    familyGroups.sort((a, b) => Math.min(...a.map(p => p.order)) - Math.min(...b.map(p => p.order)));
+    const handledFamily = new Set(familyGroups.flatMap(group => group.map(passenger => passenger.id)));
+    let seatsRemaining = racRemaining;
+    for (const group of familyGroups) {
+      if (group.length > seatsRemaining) continue;
+      const groupPlan = this.makeRacPlanForGroup(booking, group, virtualPairs, createdPairs);
+      if (!groupPlan) continue;
+      plan.push(groupPlan); group.forEach(passenger => assigned.add(passenger.id)); seatsRemaining -= group.length;
+    }
+    for (const passenger of [...pending].sort((a, b) => a.order - b.order)) {
+      if (assigned.has(passenger.id) || seatsRemaining <= 0) continue;
+      if (handledFamily.has(passenger.id)) continue;
+      const groupPlan = this.makeRacPlanForGroup(booking, [passenger], virtualPairs, createdPairs);
+      if (!groupPlan) continue;
+      plan.push(groupPlan); assigned.add(passenger.id); seatsRemaining -= 1;
+    }
+    return plan;
+  }
+
+  applyRacPlan(classCode, plan) {
+    const created = new Map();
+    for (const group of plan) {
+      let pair = group.pair.pair ?? created.get(group.pair);
+      if (!pair) {
+        const berth = this.berths.get(group.pair.berthId);
+        pair = { id: `RAC-${classCode}-${group.passengers[0].bookingId}-${group.passengers[0].id}`, classCode, berthId: berth.id, members: [], segments: [], open: true };
+        pair.allocation = { type: "RAC", members: pair.members, segments: [] };
+        berth.allocations.push(pair.allocation);
+        this.racPairs[classCode].push(pair);
+        created.set(group.pair, pair);
       }
-      this.queues[booking.classCode].rac.push(p);
+      for (const passenger of group.passengers) {
+        passenger.status = "RAC";
+        passenger.racPair = pair;
+        passenger.berthId = pair.berthId;
+        passenger.coachId = this.berths.get(pair.berthId).coach;
+        pair.members.push(passenger);
+        this.queues[classCode].rac.push(passenger);
+      }
+      this.refreshRacPair(pair);
     }
   }
 
-  activeInQueue(classCode, type) { return this.queues[classCode][type].filter(p => p.status === type.toUpperCase()); }
+  refreshRacPair(pair) {
+    const berth = this.berths.get(pair.berthId);
+    const oldSegments = new Set(pair.allocation.segments);
+    const newSegments = new Set(pair.members.flatMap(passenger => this.passengerSegments(passenger)));
+    for (const segment of oldSegments) if (!newSegments.has(segment)) berth.occupancy[segment] -= 1;
+    for (const segment of newSegments) if (!oldSegments.has(segment)) berth.occupancy[segment] += 1;
+    pair.segments = [...newSegments];
+    pair.allocation.members = pair.members;
+    pair.allocation.segments = pair.segments;
+    pair.open = pair.members.length > 0 && pair.members.length < 2;
+  }
 
-  priceBooking(booking) {
+  detachRac(passenger) {
+    const pair = passenger.racPair;
+    if (!pair) return;
+    pair.members = pair.members.filter(member => member !== passenger);
+    passenger.racPair = null;
+    passenger.berthId = null;
+    passenger.coachId = null;
+    if (!pair.members.length) {
+      const berth = this.berths.get(pair.berthId);
+      berth.allocations = berth.allocations.filter(allocation => allocation !== pair.allocation);
+      for (const segment of pair.allocation.segments) berth.occupancy[segment] -= 1;
+      pair.open = false;
+      this.racPairs[pair.classCode] = this.racPairs[pair.classCode].filter(candidate => candidate !== pair);
+    } else this.refreshRacPair(pair);
+  }
+
+  releaseConfirmed(passenger) {
+    if (passenger.allocation && passenger.berthId) {
+      const berth = this.berths.get(passenger.berthId);
+      berth.allocations = berth.allocations.filter(allocation => allocation !== passenger.allocation);
+      for (const segment of passenger.allocation.segments) berth.occupancy[segment] -= 1;
+    }
+    passenger.allocation = null;
+    passenger.berthId = null;
+    passenger.coachId = null;
+  }
+
+  rateForDistance(spec, distance) {
+    if (Array.isArray(spec.fareSlabs) && spec.fareSlabs.length) {
+      const slab = spec.fareSlabs.find(item => item.upToKm === null || distance <= item.upToKm) ?? spec.fareSlabs.at(-1);
+      return slab.ratePerKm;
+    }
+    return spec.ratePerKm;
+  }
+
+  reprice(booking) {
     const spec = this.train.classes[booking.classCode];
     const rawDistance = this.train.route[booking.trip.end].distance - this.train.route[booking.trip.start].distance;
-    const distance = ["3A", "2A"].includes(booking.classCode) ? Math.max(200, rawDistance) : rawDistance;
     const ac = ["3A", "2A"].includes(booking.classCode);
-    const eligibleSenior = booking.passengers.some(p => p.status !== "CANCELLED" && ((p.gender === "M" && p.age >= 60) || (p.gender === "F" && p.age >= 58)));
-    for (const p of booking.passengers) {
-      if (p.age < 5 || p.status === "CANCELLED") { p.fare = 0; continue; }
-      const base = spec.ratePerKm * distance;
-      const tatkal = booking.quota === "TATKAL";
-      let amount = base;
-      if (tatkal) amount *= 1.3;
-      else if (booking.quota === "SENIOR" && eligibleSenior) amount *= p.gender === "F" && p.age >= 58 ? 0.5 : p.gender === "M" && p.age >= 60 ? 0.6 : 1;
-      amount += spec.reservationFee;
+    const distance = ac ? Math.max(200, rawDistance) : rawDistance;
+    const rate = this.rateForDistance(spec, distance);
+    const hasSenior = booking.passengers.some(passenger => this.isActive(passenger) && this.eligibleSenior(passenger));
+    let currentFare = 0;
+    for (const passenger of booking.passengers) {
+      if (!this.isActive(passenger)) continue;
+      if (this.isInfant(passenger)) { passenger.fare = 0; continue; }
+      let base = rate * distance;
+      if (booking.quota === "TATKAL") base *= 1.3;
+      else if (booking.quota === "SENIOR" && hasSenior) base *= passenger.gender === "F" ? 0.5 : 0.6;
+      let amount = base + spec.reservationFee;
       if (ac) amount *= 1.05;
-      p.fare = money(amount);
+      passenger.fare = money(amount);
+      currentFare += passenger.fare;
     }
+    booking.currentFare = currentFare;
+    return currentFare;
   }
 
-  releasePassenger(p) {
-    if (p.status === "CNF" && p.berthId) {
-      const berth = this.berths.get(p.berthId); const trip = this.trip(p.from, p.to);
-      berth.confirmed = berth.confirmed.filter(x => x !== p);
-      for (const s of trip.segments) if (!berth.confirmed.some(x => this.trip(x.from, x.to).segments.includes(s))) berth.occupied.delete(s);
-    }
-    if (p.status === "RAC" && p.racPair) this.detachRac(p);
-    p.berthId = null; p.racPair = null;
+  refundFor(passenger, booking, oldStatus, at) {
+    if (passenger.fare <= 0) return 0;
+    if (oldStatus === "WL" || oldStatus === "RAC") return hoursUntil(this.train.departure, at) >= 0.5 ? Math.max(0, passenger.fare - 60) : 0;
+    if (oldStatus !== "CNF" || booking.quota === "TATKAL" || this.chartPrepared) return 0;
+    const hours = hoursUntil(this.train.departure, at);
+    const refundRate = hours >= 48 ? 0.75 : hours >= 12 ? 0.5 : hours >= 4 ? 0.25 : 0;
+    if (!refundRate) return 0;
+    const classMinimum = this.train.classes[booking.classCode].minimumDeduction ?? 0;
+    const deduction = Math.max(classMinimum, money(passenger.fare * (1 - refundRate)));
+    return Math.max(0, passenger.fare - deduction);
   }
 
-  detachRac(p) {
-    const pair = p.racPair;
-    if (!pair) return;
-    const removedSegments = new Set(this.trip(p.from, p.to).segments);
-    pair.members = pair.members.filter(member => member !== p);
-    for (const segment of removedSegments) {
-      if (!pair.members.some(member => this.trip(member.from, member.to).segments.includes(segment))) {
-        pair.occupied.delete(segment);
-        if (pair.berthId) this.berths.get(pair.berthId).occupied.delete(segment);
-      }
+  cancel(command) {
+    const booking = this.bookings.get(command.bookingId);
+    if (!booking) throw new Error(`Unknown booking ${command.bookingId}`);
+    if (command.passengerIds !== undefined && (!Array.isArray(command.passengerIds) || !command.passengerIds.length)) throw new Error("passengerIds must be a non-empty array when supplied");
+    const selected = command.passengerIds ? new Set(command.passengerIds) : null;
+    const targets = booking.passengers.filter(passenger => this.isActive(passenger) && (!selected || selected.has(passenger.id)));
+    if (selected && [...selected].some(id => !targets.some(passenger => passenger.id === id))) throw new Error("Cancellation includes an unknown or inactive passenger");
+    const remaining = booking.passengers.filter(passenger => this.isActive(passenger) && !targets.includes(passenger));
+    for (const child of remaining.filter(passenger => this.isChild(passenger))) {
+      if (!remaining.some(passenger => passenger.age >= 18)) throw new Error("Cannot cancel the last adult while a child under 12 remains on the booking");
     }
-    if (pair.members.length === 0) pair.open = false;
-    p.racPair = null;
-  }
-
-  cancel(c) {
-    const booking = this.bookings.get(c.bookingId);
-    if (!booking) throw new Error(`Unknown booking ${c.bookingId}`);
-    const chosen = c.passengerIds ? new Set(c.passengerIds) : null;
-    const targets = booking.passengers.filter(p => ACTIVE.has(p.status) && (!chosen || chosen.has(p.id)));
-    if (chosen && [...chosen].some(id => !booking.passengers.some(p => p.id === id && ACTIVE.has(p.status)))) throw new Error("Cancellation includes an unknown or inactive passenger");
+    const refundBefore = booking.refunded;
     const promotions = [];
-    for (const p of targets) {
-      const oldStatus = p.status;
-      let refund = 0;
-      if (oldStatus === "WL" || oldStatus === "RAC") refund = hoursBetween(this.train.departure, c.at) >= 0.5 ? Math.max(0, p.fare - 60) : 0;
-      else if (booking.quota !== "TATKAL" && !this.chartPrepared) {
-        const h = hoursBetween(this.train.departure, c.at), pct = h >= 48 ? 0.75 : h >= 12 ? 0.5 : h >= 4 ? 0.25 : 0;
-        const minimumDeduction = this.train.classes[booking.classCode].minimumDeduction;
-        refund = Math.max(0, p.fare - Math.max(minimumDeduction, money(p.fare * (1 - pct))));
-      }
-      this.releasePassenger(p); p.status = "CANCELLED"; p.refund += refund; booking.refunded += refund;
-      if (oldStatus === "CNF") promotions.push(...this.promote(booking.classCode, c.at));
+    for (const passenger of targets) {
+      const oldStatus = passenger.status;
+      passenger.refund += this.refundFor(passenger, booking, oldStatus, command.at);
+      booking.refunded += passenger.refund - (passenger.previousRefund ?? 0);
+      passenger.previousRefund = passenger.refund;
+      if (oldStatus === "CNF") this.releaseConfirmed(passenger);
+      if (oldStatus === "RAC") this.detachRac(passenger);
+      passenger.status = "CANCELLED";
+      passenger.cancelledAt = command.at;
+      if (oldStatus === "CNF" || oldStatus === "RAC") promotions.push(...this.promote(booking.classCode, command.at));
     }
-    this.priceBooking(booking);
-    booking.paid = booking.passengers.reduce((sum, p) => sum + p.fare, 0);
-    booking.canceled = booking.passengers.every(p => !ACTIVE.has(p.status) && p.status !== "NO_BERTH");
-    return { type: "cancelled", bookingId: booking.id, refunded: targets.reduce((s, p) => s + p.refund, 0), passengers: this.passengerSnapshot(booking), promotions };
+    this.reprice(booking);
+    booking.canceled = booking.passengers.every(passenger => passenger.status === "CANCELLED");
+    return { type: "cancelled", bookingId: booking.id, refunded: booking.refunded - refundBefore, currentFare: booking.currentFare, passengers: this.passengerSnapshot(booking), promotions };
+  }
+
+  releasePassenger(passenger) {
+    if (passenger.status === "CNF") this.releaseConfirmed(passenger);
+    if (passenger.status === "RAC") this.detachRac(passenger);
+  }
+
+  findPromotionBerth(passenger) {
+    const trip = this.trip(passenger.from, passenger.to);
+    const options = this.classBerths(passenger.classCode).filter(berth => this.berthFits(berth, trip, passenger));
+    const familyCoach = this.relatedAdultCoach(passenger);
+    return options.sort((a, b) => this.berthScore(b, passenger, familyCoach) - this.berthScore(a, passenger, familyCoach) || a.id.localeCompare(b.id))[0] ?? null;
+  }
+
+  relatedAdultCoach(passenger) {
+    if (!this.isChild(passenger)) return null;
+    const booking = this.bookings.get(passenger.bookingId);
+    return booking?.passengers.find(candidate => candidate.age >= 18 && candidate.id !== passenger.id && candidate.status !== "CANCELLED")?.coachId ?? null;
+  }
+
+  waitlistUnits(classCode) {
+    const queue = this.activeInQueue(classCode, "wl"), used = new Set(), units = [];
+    for (const passenger of queue) {
+      if (used.has(passenger.id)) continue;
+      const booking = this.bookings.get(passenger.bookingId);
+      if (this.isChild(passenger) || passenger.age >= 18) {
+        const adult = passenger.age >= 18 && passenger.status === "WL"
+          ? passenger
+          : booking.passengers.find(candidate => candidate.age >= 18 && candidate.status === "WL");
+        const children = booking.passengers.filter(candidate => this.isChild(candidate) && candidate.status === "WL");
+        if (adult && children.length && !used.has(adult.id)) {
+          const group = [adult, ...children];
+          group.forEach(member => used.add(member.id));
+          units.push(group);
+          continue;
+        }
+      }
+      used.add(passenger.id); units.push([passenger]);
+    }
+    return units;
+  }
+
+  assignRacGroup(classCode, people) {
+    const child = people.find(passenger => this.isChild(passenger));
+    const familyCoach = child && !people.some(passenger => passenger.age >= 18) ? this.relatedAdultCoach(child) : null;
+    const pair = this.racPairs[classCode].find(candidate => candidate.open && candidate.members.length + people.length <= 2 &&
+      (!familyCoach || this.berths.get(candidate.berthId)?.coach === familyCoach));
+    let selectedPair = pair;
+    if (!selectedPair) {
+      if (people.length > 2) return null;
+      const berth = this.classBerths(classCode).find(candidate => candidate.type === "SIDE_LOWER" && (!familyCoach || candidate.coach === familyCoach) && people.every(person => this.berthFits(candidate, this.trip(person.from, person.to))));
+      if (!berth) return null;
+      selectedPair = { id: `RAC-${classCode}-${people[0].bookingId}-${people[0].id}`, classCode, berthId: berth.id, members: [], segments: [], open: true };
+      selectedPair.allocation = { type: "RAC", members: selectedPair.members, segments: [] };
+      berth.allocations.push(selectedPair.allocation);
+      this.racPairs[classCode].push(selectedPair);
+    }
+    for (const passenger of people) {
+      passenger.status = "RAC"; passenger.racPair = selectedPair; passenger.berthId = selectedPair.berthId;
+      passenger.coachId = this.berths.get(selectedPair.berthId).coach;
+      selectedPair.members.push(passenger); this.queues[classCode].rac.push(passenger);
+    }
+    this.refreshRacPair(selectedPair);
+    return selectedPair;
   }
 
   promote(classCode, at) {
-    const logs = [], spec = this.train.classes[classCode];
-    let changed = true;
-    while (changed) {
-      changed = false;
-      const rac = this.activeInQueue(classCode, "rac");
-      for (const p of rac) {
-        const booking = this.bookings.get(p.bookingId), trip = this.trip(p.from, p.to);
-        const berth = [...this.berths.values()].find(b => b.classCode === classCode && this.berthFits(b, trip));
-        if (!berth) continue;
-        this.detachRac(p);
-        p.status = "CNF"; p.berthId = berth.id; berth.confirmed.push(p); trip.segments.forEach(s => berth.occupied.add(s));
-        logs.push({ passengerId: p.id, from: "RAC", to: "CNF", berthId: berth.id, reason: "earliest segment-compatible vacancy" });
-        this.priceBooking(booking); changed = true; break;
-      }
-      if (changed) continue;
-      if (this.activeInQueue(classCode, "rac").length < this.capacity(classCode, "rac")) {
-        const wl = this.activeInQueue(classCode, "wl");
-        if (wl.length) {
-          const p = wl[0], booking = this.bookings.get(p.bookingId);
-          p.status = "RAC"; p.racPair = { id: `RAC-${classCode}-${p.id}`, berthId: null, members: [p], occupied: new Set(), open: true };
-          this.queues[classCode].rac.push(p); logs.push({ passengerId: p.id, from: "WL", to: "RAC", reason: "earliest eligible waitlisted passenger" });
-          this.priceBooking(booking); changed = true;
-        }
+    const promotions = [];
+    for (const passenger of this.activeInQueue(classCode, "rac")) {
+      const berth = this.findPromotionBerth(passenger);
+      if (!berth) continue;
+      this.detachRac(passenger);
+      passenger.status = "CNF";
+      this.addConfirmed(passenger, berth);
+      const booking = this.bookings.get(passenger.bookingId);
+      this.reprice(booking);
+      promotions.push({ passengerId: passenger.id, from: "RAC", to: "CNF", berthId: berth.id, reason: "earliest segment-compatible vacancy", at });
+    }
+    let racRoom = this.capacity(classCode, "rac") - this.activeInQueue(classCode, "rac").length;
+    for (const unit of this.waitlistUnits(classCode)) {
+      if (unit.length > racRoom) continue;
+      const pair = this.assignRacGroup(classCode, unit);
+      if (!pair) continue;
+      racRoom -= unit.length;
+      for (const passenger of unit) {
+        this.reprice(this.bookings.get(passenger.bookingId));
+        promotions.push({ passengerId: passenger.id, from: "WL", to: "RAC", racPair: pair.id, reason: "earliest compatible waitlisted passenger", at });
       }
     }
-    return logs;
+    return promotions;
   }
 
-  status(c) {
-    const booking = this.bookings.get(c.bookingId);
-    if (!booking) throw new Error(`Unknown booking ${c.bookingId}`);
-    return { type: "status", bookingId: booking.id, passengers: this.passengerSnapshot(booking), fare: booking.paid, refunded: booking.refunded };
+  status(command) {
+    const booking = this.bookings.get(command.bookingId);
+    if (!booking) throw new Error(`Unknown booking ${command.bookingId}`);
+    return { type: "status", bookingId: booking.id, passengers: this.passengerSnapshot(booking), totalPaid: booking.totalPaid, currentFare: booking.currentFare, refunded: booking.refunded };
   }
 
   passengerSnapshot(booking) {
-    return booking.passengers.map(p => ({ id: p.id, name: p.name, status: p.status, berthId: p.berthId, racPair: p.racPair?.id ?? null, fare: p.fare, refund: p.refund }));
+    return booking.passengers.map(passenger => ({
+      id: passenger.id, name: passenger.name, status: passenger.status,
+      berthId: passenger.berthId, coachId: passenger.coachId,
+      racPair: passenger.racPair?.id ?? null, fare: passenger.fare, refund: passenger.refund
+    }));
   }
 
-  prepareChart(c) {
-    if (hoursBetween(this.train.departure, c.at) > 4) throw new Error("Chart preparation is allowed only within four hours of departure");
+  allocateGeneralWaitlist(classCode, availableQuotaSlots, promotions) {
+    let remaining = availableQuotaSlots;
+    const coaches = [...new Set(this.classBerths(classCode).map(berth => berth.coach))];
+    for (const unit of this.waitlistUnits(classCode)) {
+      if (unit.some(passenger => passenger.quota !== "GENERAL") || unit.length > remaining) continue;
+      const booking = this.bookings.get(unit[0].bookingId);
+      const child = unit.find(passenger => this.isChild(passenger));
+      const existingFamilyCoach = child ? this.relatedAdultCoach(child) : null;
+      const coachOptions = existingFamilyCoach ? [existingFamilyCoach] : coaches;
+      let allocation = null;
+      for (const coach of coachOptions) {
+        allocation = this.planInCoach(unit, booking, coach, remaining);
+        if (allocation) break;
+      }
+      if (!allocation) continue;
+      for (const item of allocation) {
+        this.addConfirmed(item.passenger, item.berth);
+        promotions.push({ passengerId: item.passenger.id, from: "WL", to: "CNF", berthId: item.berth.id, reason: "GENERAL quota released at chart" });
+      }
+      remaining -= allocation.length;
+      this.reprice(booking);
+    }
+    return remaining;
+  }
+
+  prepareChart(command) {
+    if (hoursUntil(this.train.departure, command.at) > 4) throw new Error("Chart preparation is allowed only within four hours of departure");
+    if (hoursUntil(this.train.departure, command.at) < 0) throw new Error("Chart preparation must occur before departure");
     if (this.chartPrepared) throw new Error("Chart already prepared");
+
+    const promotions = [], releasedQuota = {};
+    // RAC retains priority over newly released quota inventory.
+    for (const passenger of this.activeInAll("RAC")) {
+      const berth = this.findPromotionBerth(passenger);
+      if (!berth) continue;
+      this.detachRac(passenger);
+      passenger.status = "CNF";
+      this.addConfirmed(passenger, berth);
+      this.reprice(this.bookings.get(passenger.bookingId));
+      promotions.push({ passengerId: passenger.id, from: "RAC", to: "CNF", berthId: berth.id, reason: "chart vacancy allocation" });
+    }
+
+    for (const classCode of Object.keys(this.train.classes)) {
+      const spec = this.train.classes[classCode];
+      const usedByQuota = Object.fromEntries(Object.keys(spec.quotas).map(quota => [quota, this.confirmedQuotaCount(classCode, quota)]));
+      const unused = Object.fromEntries(Object.entries(spec.quotas).map(([quota, count]) => [quota, Math.max(0, count - (usedByQuota[quota] ?? 0))]));
+      const releasedToGeneral = Object.entries(unused).filter(([quota]) => quota !== "GENERAL").reduce((sum, [, count]) => sum + count, 0);
+      releasedQuota[classCode] = { ...unused, releasedToGeneral };
+      let generalSlots = Math.max(0, (spec.quotas.GENERAL ?? 0) - (usedByQuota.GENERAL ?? 0)) + releasedToGeneral;
+      if (generalSlots > 0) generalSlots = this.allocateGeneralWaitlist(classCode, generalSlots, promotions);
+    }
+
     this.chartPrepared = true;
-    const promotions = [];
-    for (const p of this.activeInAll("RAC")) {
-      const booking = this.bookings.get(p.bookingId), trip = this.trip(p.from, p.to);
-      const berth = [...this.berths.values()].find(b => b.classCode === p.classCode && this.berthFits(b, trip));
-      if (berth) {
-        this.detachRac(p);
-        p.status = "CNF"; p.berthId = berth.id; berth.confirmed.push(p); trip.segments.forEach(s => berth.occupied.add(s));
-        promotions.push({ passengerId: p.id, from: "RAC", to: "CNF", berthId: berth.id, reason: "chart vacancy allocation" }); this.priceBooking(booking);
+    const autoCancelledWaitlist = [];
+    for (const passenger of this.activeInAll("WL")) {
+      const booking = this.bookings.get(passenger.bookingId);
+      passenger.status = "CANCELLED";
+      passenger.cancelledAt = command.at;
+      passenger.refund += passenger.fare;
+      booking.refunded += passenger.fare;
+      autoCancelledWaitlist.push({ id: passenger.id, bookingId: passenger.bookingId, from: passenger.from, to: passenger.to, refund: passenger.fare });
+      promotions.push({ passengerId: passenger.id, from: "WL", to: "CANCELLED", reason: "automatic full refund after chart" });
+    }
+    for (const booking of this.bookings.values()) {
+      const hasTravelingAdult = booking.passengers.some(passenger => passenger.status !== "CANCELLED" && passenger.age >= 18);
+      if (hasTravelingAdult) continue;
+      for (const passenger of booking.passengers.filter(candidate => candidate.status === "NO_BERTH" && this.isChild(candidate))) {
+        passenger.status = "CANCELLED";
+        passenger.cancelledAt = command.at;
+        promotions.push({ passengerId: passenger.id, from: "NO_BERTH", to: "CANCELLED", reason: "guardian ticket did not clear chart" });
       }
     }
-    for (const p of this.activeInAll("WL")) {
-      const booking = this.bookings.get(p.bookingId); p.status = "CANCELLED"; p.refund = p.fare; booking.refunded += p.fare;
-      promotions.push({ passengerId: p.id, from: "WL", to: "CANCELLED", reason: "automatic full refund after chart" });
-    }
-    return { type: "chart", promotions, chart: this.chart() };
+    for (const booking of this.bookings.values()) this.reprice(booking);
+    return { type: "chart", releasedQuota, promotions, autoCancelledWaitlist, chart: this.chart() };
   }
 
-  activeInAll(status) { return Object.values(this.queues).flatMap(q => q[status.toLowerCase()]).filter(p => p.status === status); }
   chart() {
-    return { coaches: [...new Set([...this.berths.values()].map(b => b.coach))].map(coach => ({ coach, berths: [...this.berths.values()].filter(b => b.coach === coach).map(b => ({ berthId: b.id, type: b.type, passengers: b.confirmed.filter(p => p.status === "CNF").map(p => ({ id: p.id, name: p.name, from: p.from, to: p.to })) })) })),
-      finalWaitlist: this.activeInAll("WL").map(p => ({ id: p.id, bookingId: p.bookingId, from: p.from, to: p.to })) };
+    const coaches = [...new Set([...this.berths.values()].map(berth => berth.coach))];
+    return {
+      coaches: coaches.map(coach => ({
+        coach,
+        berths: [...this.berths.values()].filter(berth => berth.coach === coach).map(berth => ({
+          berthId: berth.id,
+          class: berth.classCode,
+          type: berth.type,
+          confirmed: berth.allocations.filter(allocation => allocation.type === "CNF").flatMap(allocation => allocation.members.filter(passenger => passenger.status === "CNF").map(passenger => ({ id: passenger.id, name: passenger.name, from: passenger.from, to: passenger.to }))),
+          rac: berth.allocations.filter(allocation => allocation.type === "RAC").flatMap(allocation => allocation.members.filter(passenger => passenger.status === "RAC").map(passenger => ({ id: passenger.id, name: passenger.name, from: passenger.from, to: passenger.to, racPair: passenger.racPair?.id })))
+        }))
+      })),
+      finalWaitlist: this.activeInAll("WL").map(passenger => ({ id: passenger.id, bookingId: passenger.bookingId, from: passenger.from, to: passenger.to })),
+      noBerthPassengers: [...this.bookings.values()].flatMap(booking => booking.passengers.filter(passenger => passenger.status === "NO_BERTH").map(passenger => ({ id: passenger.id, bookingId: booking.id, name: passenger.name })))
+    };
   }
 }
+
