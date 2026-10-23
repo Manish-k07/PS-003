@@ -1,0 +1,15 @@
+{
+  "trainId": "SJ03",
+  "name": "Sample Express",
+  "departure": "2026-11-08T08:00:00+05:30",
+  "route": [
+    {"name":"Central","distance":0}, {"name":"Northgate","distance":55}, {"name":"Lakeview","distance":110}, {"name":"Hilltown","distance":170},
+    {"name":"Midvale","distance":235}, {"name":"Eastbank","distance":300}, {"name":"Greenfield","distance":365}, {"name":"Oldfort","distance":430},
+    {"name":"Pinecrest","distance":500}, {"name":"Brookside","distance":575}, {"name":"Westport","distance":655}, {"name":"Riverside","distance":740}
+  ],
+  "classes": {
+    "SL": {"ratePerKm":0.35,"reservationFee":20,"minimumDeduction":60,"coaches":[{"id":"S1","berths":["LOWER","MIDDLE","UPPER","SIDE_LOWER","SIDE_UPPER","LOWER","MIDDLE","UPPER","SIDE_LOWER","SIDE_UPPER"]},{"id":"S2","berths":["LOWER","MIDDLE","UPPER","SIDE_LOWER","SIDE_UPPER","LOWER","MIDDLE","UPPER","SIDE_LOWER","SIDE_UPPER"]}],"quotas":{"GENERAL":12,"LADIES":2,"SENIOR":2,"TATKAL":4}},
+    "3A": {"ratePerKm":1.1,"reservationFee":40,"minimumDeduction":100,"coaches":[{"id":"A1","berths":["LOWER","MIDDLE","UPPER","LOWER","MIDDLE","UPPER","SIDE_LOWER","SIDE_UPPER","LOWER","MIDDLE"]},{"id":"A2","berths":["LOWER","MIDDLE","UPPER","LOWER","MIDDLE","UPPER","SIDE_LOWER","SIDE_UPPER","LOWER","MIDDLE"]}],"quotas":{"GENERAL":12,"LADIES":2,"SENIOR":2,"TATKAL":4}},
+    "2A": {"ratePerKm":1.6,"reservationFee":60,"minimumDeduction":120,"coaches":[{"id":"B1","berths":["LOWER","UPPER","LOWER","UPPER","SIDE_LOWER","SIDE_UPPER"]},{"id":"B2","berths":["LOWER","UPPER","LOWER","UPPER","SIDE_LOWER","SIDE_UPPER"]}],"quotas":{"GENERAL":7,"LADIES":1,"SENIOR":1,"TATKAL":3}}
+  }
+}
