@@ -1,0 +1,9 @@
+{
+  "name": "sj03-ps-003-rail-reservation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Command-file driven railway reservation engine with quotas, RAC and waitlist.",
+  "scripts": { "start": "node src/cli.js data/train.json data/commands.json", "run": "node src/cli.js", "test": "node --test" },
+  "engines": { "node": ">=20" }
+}
