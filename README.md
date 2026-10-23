@@ -28,6 +28,8 @@ Each berth stores one occupancy counter per route edge plus an allocation ledger
 
 See [the design document](docs/design.md) for the full model and BR-01…BR-12 mapping, [the PDF design document](output/pdf/ps-003-design.pdf), [the decision log](docs/decision-log.md), and [the command reference](docs/commands.md).
 
+The [five-minute demo recording script](docs/demo-script.md) is ready for recording. Add the hosted video URL here after recording and uploading it.
+
 ## Project layout
 
 - `src/engine.js` — inventory, quota, allocation, cancellation, promotion, fare/refund and chart rules
@@ -36,6 +38,7 @@ See [the design document](docs/design.md) for the full model and BR-01…BR-12 m
 - `data/commands.json` — runnable demonstration with 13 chronological commands
 - `docs/reservation-flow.svg` — editable poster-style flow diagram
 - `docs/data-flow.md` — diagram page with explanatory notes
+- `docs/demo-script.md` — timed outline for the five-minute submission video
 - `output/pdf/ps-003-design.pdf` — submission-ready design PDF
 - `test/engine.test.js` — Node built-in test suite covering segment allocation, quotas, RAC/WL promotion, partial cancellation and charting
 
