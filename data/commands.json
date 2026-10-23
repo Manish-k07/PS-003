@@ -1,6 +1,16 @@
 [
-  {"type":"book","id":"B001","at":"2026-11-01T09:00:00+05:30","class":"SL","from":"Central","to":"Lakeview","quota":"GENERAL","passengers":[{"id":"P001","name":"Asha","age":32,"gender":"F","berthPreference":"LOWER"}]},
-  {"type":"book","id":"B002","at":"2026-11-01T09:02:00+05:30","class":"SL","from":"Lakeview","to":"Hilltown","quota":"GENERAL","passengers":[{"id":"P002","name":"Dev","age":40,"gender":"M"}]},
-  {"type":"status","at":"2026-11-01T09:03:00+05:30","bookingId":"B001"},
+  {"type":"book","id":"B001","at":"2026-11-01T09:00:00+05:30","class":"SL","from":"Central","to":"Riverside","quota":"GENERAL","passengers":[{"id":"P001","name":"Asha","age":32,"gender":"F","berthPreference":"LOWER"},{"id":"P002","name":"Ravi","age":35,"gender":"M"},{"id":"P003A","name":"Mira","age":29,"gender":"F"},{"id":"P004A","name":"Karan","age":33,"gender":"M"},{"id":"P005A","name":"Leela","age":42,"gender":"F"},{"id":"P006A","name":"Arun","age":39,"gender":"M"}]},
+  {"type":"book","id":"B002","at":"2026-11-01T09:01:00+05:30","class":"SL","from":"Central","to":"Riverside","quota":"GENERAL","passengers":[{"id":"P007","name":"Mohan","age":64,"gender":"M"},{"id":"P008","name":"Nita","age":48,"gender":"F"},{"id":"P009","name":"Kabir","age":28,"gender":"M"},{"id":"P010","name":"Rupa","age":38,"gender":"F"},{"id":"P011","name":"Jay","age":31,"gender":"M"},{"id":"P012","name":"Tara","age":34,"gender":"F"}]},
+  {"type":"book","id":"B003","at":"2026-11-01T09:02:00+05:30","class":"SL","from":"Central","to":"Riverside","quota":"GENERAL","passengers":[{"id":"P013","name":"Neel","age":44,"gender":"M"}]},
+  {"type":"book","id":"B004","at":"2026-11-01T09:03:00+05:30","class":"SL","from":"Central","to":"Riverside","quota":"GENERAL","passengers":[{"id":"P014","name":"Isha","age":41,"gender":"F"}]},
+  {"type":"book","id":"B005","at":"2026-11-01T09:04:00+05:30","class":"SL","from":"Central","to":"Riverside","quota":"GENERAL","passengers":[{"id":"P015","name":"Zoya","age":30,"gender":"F"}]},
+  {"type":"book","id":"B006","at":"2026-11-01T09:05:00+05:30","class":"SL","from":"Central","to":"Riverside","quota":"GENERAL","passengers":[{"id":"P016","name":"Sahil","age":37,"gender":"M"}]},
+  {"type":"book","id":"B007","at":"2026-11-01T09:06:00+05:30","class":"3A","from":"Central","to":"Riverside","quota":"SENIOR","passengers":[{"id":"P017","name":"Kamala","age":58,"gender":"F"},{"id":"P018","name":"Ramesh","age":55,"gender":"M"}]},
+  {"type":"book","id":"B008","at":"2026-11-01T09:07:00+05:30","class":"SL","from":"Central","to":"Lakeview","quota":"GENERAL","passengers":[{"id":"P019","name":"Vikram","age":36,"gender":"M"},{"id":"P020","name":"Anu","age":4,"gender":"F"}]},
+  {"type":"cancel","at":"2026-11-06T10:00:00+05:30","bookingId":"B004","passengerIds":["P014"]},
+  {"type":"cancel","at":"2026-11-07T05:00:00+05:30","bookingId":"B001","passengerIds":["P001"]},
+  {"type":"book","id":"B009","at":"2026-11-07T08:00:00+05:30","class":"SL","from":"Hilltown","to":"Riverside","quota":"TATKAL","passengers":[{"id":"P021","name":"Fatima","age":62,"gender":"F","berthPreference":"LOWER"}]},
+  {"type":"status","at":"2026-11-07T08:01:00+05:30","bookingId":"B007"},
   {"type":"chart","at":"2026-11-08T04:00:00+05:30"}
 ]
+
