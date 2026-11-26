@@ -13,4 +13,3 @@
     "2A": {"ratePerKm":1.6,"fareSlabs":[{"upToKm":500,"ratePerKm":1.75},{"upToKm":null,"ratePerKm":1.6}],"reservationFee":60,"minimumDeduction":120,"coaches":[{"id":"B1","berths":["LOWER","UPPER","LOWER","UPPER","SIDE_LOWER","SIDE_UPPER"]},{"id":"B2","berths":["LOWER","UPPER","LOWER","UPPER","SIDE_LOWER","SIDE_UPPER"]}],"quotas":{"GENERAL":7,"LADIES":1,"SENIOR":1,"TATKAL":3}}
   }
 }
-

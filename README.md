@@ -1,49 +1,59 @@
 # SJ03-PS-003 — Railway Reservation Engine
 
-Node.js 20+ implementation of the PS-003 command-file driven reservation engine. It models one train over a fixed 12-station route, coach/berth inventory by inter-station segment, class quotas, confirmed/RAC/waitlist states, partial cancellations and promotions, distance-slab fares/refunds, and chart preparation. It uses Node built-ins only.
+Java 17+ (primary, zero external dependencies) and Node.js 20+ (prototype) implementations of the PS-003 command-file driven railway reservation engine. It models one train over a fixed 12-station route, coach/berth inventory by inter-station segment, class quotas (`GENERAL`, `LADIES`, `SENIOR`, `TATKAL`), confirmed/RAC/waitlist states, partial and full cancellations with ordered promotions, distance-slab fares/refunds, and final chart preparation.
 
-## Run
+## Build & Run (Java 17+)
+
+Compile with JDK 17+ (`javac --release 17`):
+
+```powershell
+New-Item -ItemType Directory -Force -Path out/main, out/test | Out-Null
+javac --release 17 -encoding UTF-8 -d out/main (Get-ChildItem -Recurse -Filter *.java src/main/java).FullName
+javac --release 17 -encoding UTF-8 -cp out/main -d out/test (Get-ChildItem -Recurse -Filter *.java test/java).FullName
+```
+
+Run the CLI against `data/train.json` and `data/commands.json`:
+
+```powershell
+java -cp out/main com.sj03.reservation.Main data/train.json data/commands.json
+```
+
+Run the Java verification suite (25 tests covering BR-01..BR-12, all 7 edge cases, and a 120-booking / 25-cancellation 6-day simulation):
+
+```powershell
+java -cp "out/main;out/test" com.sj03.reservation.ReservationEngineTest
+```
+
+## Run (Node.js 20+ Prototype)
 
 ```sh
 npm start
-# or provide files explicitly
-node src/cli.js data/train.json data/commands.json
+# or run the Node test suite
+npm test
 ```
-
-The CLI prints deterministic JSON events and a final coach chart. Booking and cancellation events include snapshots of passenger statuses so each transition can be audited. Input examples are in `data/`.
 
 ## Command file format
 
-The command file is a JSON array. Commands are processed in order. A booking uses an ISO-8601 `at`, class, station names, quota and 1–6 passenger records; cancellation names a booking and passenger IDs (omit the list to cancel all). `chart` prepares the chart at its command timestamp.
+The command file is a JSON array processed sequentially in chronological ISO-8601 timestamp order. Supported commands: `book`, `cancel`, `status`, `chart`. Errors on a single command are emitted as `{"type":"error",...}` without mutating state so subsequent commands continue cleanly.
 
 ```json
 {"type":"book","id":"B001","at":"2026-11-01T09:00:00+05:30","class":"SL","from":"Central","to":"Riverside","quota":"GENERAL","passengers":[{"id":"P001","name":"Asha","age":32,"gender":"F","berthPreference":"LOWER"}]}
 ```
 
-Supported command types: `book`, `cancel`, `status`, `chart`. Station names must exist on the configured route; origin must precede destination. The provided demo uses a compact command set; the engine accepts the full 120-booking/25-cancellation input format without code changes.
+## Segment availability data structure & complexity
 
-## Design overview
+Each `Berth` stores:
+1. A 64-bit `long occupiedMask` representing occupied route edges `[i, j)` for a journey from station index `i` to `j` (up to 64 route edges; 11 edges for the 12-station route).
+2. An `int[] edgeOccupancy` array of length `R = 11` and an auditable `List<Allocation>` ledger tracking individual `CNF` and shared `RAC` pair allocations.
 
-Each berth stores one occupancy counter per route edge plus an allocation ledger. A trip from station index `i` to `j` occupies edges `[i, j)`. Two trips conflict exactly when their edge intervals intersect. This makes adjacent trips `A→B` and `B→C` legal on one berth. Checking a berth and adding/releasing an allocation is O(L), where L is the journey length. Searching B berths is O(B·L). With 11 route edges, storage is O(B·R + A·R), where R is route edges and A is active allocations. See [docs/design.md](docs/design.md) for the explanation and [the poster-style flow diagram](docs/data-flow.md).
-
-See [the design document](docs/design.md) for the full model and BR-01…BR-12 mapping, [the PDF design document](output/pdf/ps-003-design.pdf), [the decision log](docs/decision-log.md), and [the command reference](docs/commands.md).
-
-The [five-minute demo recording script](docs/demo-script.md) is ready for recording. Add the hosted video URL here after recording and uploading it.
+Because `[i, j)` is half-open, adjacent trips `A→B` and `B→C` have disjoint edge bitmasks and legally share one berth. Checking whether a berth fits a journey bitmask is **O(1)** via `(berth.occupiedMask() & trip.segmentMask()) == 0L`, searching all `B` berths in a class is **O(B)** bitwise checks, and adding/releasing an allocation updates `edgeOccupancy` and `occupiedMask` in **O(L)** (bounded by `R = 11`). Storage is **O(B·R + A)** across `B` berths and `A` active allocations.
 
 ## Project layout
 
-- `src/engine.js` — inventory, quota, allocation, cancellation, promotion, fare/refund and chart rules
-- `src/cli.js` — command-file runner and stable JSON output
-- `data/train.json` — 12-station sample route, coach layouts and fare card
-- `data/commands.json` — runnable demonstration with 13 chronological commands
-- `docs/reservation-flow.svg` — editable poster-style flow diagram
-- `docs/data-flow.md` — diagram page with explanatory notes
-- `docs/demo-script.md` — timed outline for the five-minute submission video
-- `output/pdf/ps-003-design.pdf` — submission-ready design PDF
-- `scripts/build-design-pdf.js` — dependency-free JavaScript PDF builder (`npm run build:design-pdf`)
-- `test/engine.test.js` — Node built-in test suite covering segment allocation, quotas, RAC/WL promotion, partial cancellation and charting
-
-## Scope notes
-
-The sample fare rates, quota counts, and minimum deductions are illustrative configuration values; replace them with official sample data when supplied. Hidden evaluation data and checkpoint dates were not included in the brief. A hosted demo video URL must be added to the repository after recording and uploading the demonstration.
-
+- `src/main/java/com/sj03/reservation/` — Java 17+ reservation engine, CLI (`Main.java`), JSON codec (`json/`), domain models (`model/`), and planners/calculators (`engine/`)
+- `test/java/com/sj03/reservation/ReservationEngineTest.java` — Java 17+ test suite (25 tests + 120-booking/25-cancellation 6-day simulation)
+- `src/engine.js`, `src/cli.js`, `test/engine.test.js` — original Node.js 20+ prototype and tests
+- `data/train.json` — 12-station sample route, coach layouts, quotas, and fare card
+- `data/commands.json` — runnable 13-command chronological demonstration
+- `docs/design.md`, `docs/decision-log.md`, `docs/commands.md`, `docs/data-flow.md`, `docs/reservation-flow.svg` — architecture, BR-01..BR-12 registry, and diagrams
+- `output/pdf/ps-003-design.pdf` — generated design PDF (`npm run build:design-pdf`)

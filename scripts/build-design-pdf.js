@@ -92,7 +92,7 @@ function streamFor(commands, pageNumber) {
   const parts = [
     'q', `${navy} rg`, '60 788 475 34 re f',
     'BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 72 805 Tm (SJ03-PS-003  |  RESERVATION ENGINE DESIGN) Tj ET',
-    'BT /F1 8 Tf 1 1 1 rg 1 0 0 1 468 805 Tm (Node.js 20+) Tj ET',
+    'BT /F1 8 Tf 1 1 1 rg 1 0 0 1 430 805 Tm (Java 17+ / Node 20+) Tj ET',
     ...commands,
     '0.84 0.88 0.92 RG 0.7 w 60 45 m 535 45 l S',
     `BT /F1 8 Tf ${muted} rg 1 0 0 1 60 31 Tm (Design specification) Tj ET`,
@@ -141,4 +141,3 @@ function makePdf() {
 fs.mkdirSync(path.dirname(output), { recursive: true });
 fs.writeFileSync(output, makePdf());
 console.log(output);
-

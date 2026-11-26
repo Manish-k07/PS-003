@@ -195,4 +195,3 @@ test("commands with timestamps earlier than prior successful commands are reject
   e.execute(booking("TIME-1", "Central", "Lakeview", passenger("TIME-P1"), { at: "2026-11-01T10:00:00+05:30" }));
   assert.throws(() => e.execute({ type: "status", bookingId: "TIME-1", at }), /chronological order/);
 });
-

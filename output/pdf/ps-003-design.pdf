@@ -4,7 +4,7 @@
 << /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R 14 0 R] /Count 5 >>
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R] /Count 4 >>
 endobj
 3 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
@@ -13,48 +13,49 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
 endobj
 5 0 obj
-<< /Length 4881 >>
+<< /Length 5071 >>
 stream
 q
 0.09 0.24 0.38 rg
 60 788 475 34 re f
 BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 72 805 Tm (SJ03-PS-003  |  RESERVATION ENGINE DESIGN) Tj ET
-BT /F1 8 Tf 1 1 1 rg 1 0 0 1 468 805 Tm (Node.js 20+) Tj ET
+BT /F1 8 Tf 1 1 1 rg 1 0 0 1 430 805 Tm (Java 17+ / Node 20+) Tj ET
 BT /F2 25 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 725.89 Tm (Design Document - SJ03-PS-003) Tj ET
 BT /F1 10 Tf 0.38 0.45 0.54 rg 1 0 0 1 62 687.89 Tm (Train Reservation with Quotas, RAC and Waitlist) Tj ET
 BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 647.89 Tm (Goal) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 614.89 Tm (Build a deterministic, command-file driven reservation engine for one train on a fixed 12-station) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 600.89 Tm (route. Train layout, class capacities, quotas, fare slabs, reservation fees, and cancellation) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 586.89 Tm (minimums are data in data/train.json. Commands execute in timestamp order and each command emits a) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 572.89 Tm (JSON result with passenger status snapshots.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 540.89 Tm (Assumptions and configuration) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 507.89 Tm (* Command timestamps are ISO-8601 with an explicit timezone and must be chronological.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 490.69 Tm (* Tatkal opens exactly 24 hours before the configured departure; requests earlier than that window) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 477.49 Tm (are rejected.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 460.29 Tm (* Quota counts are passenger limits on confirmed allocation, tracked by class and quota. They do) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 447.09 Tm (not create extra physical berths.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 429.89 Tm (* RAC capacity is max\(1, floor\(berths 10%\)\) passengers per class. Waitlist capacity uses max\(1,) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 416.69 Tm (floor\(berths 30%\)\) passengers per class. The minimum of one keeps small example layouts usable;) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 403.49 Tm (the sample layout contains multiple coaches per class.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 386.29 Tm (* A passenger under 12 must be booked with an adult aged 18 or older. A passenger under five has) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 373.09 Tm (NO_BERTH, pays no fare, and remains associated with that adult ticket.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 355.89 Tm (* Senior quota concession applies to every passenger on the SENIOR ticket while at least one) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 342.69 Tm (qualifying senior remains. Men receive 40% off base fare and women 50%; if the last qualifying) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 329.49 Tm (senior is cancelled, remaining passengers revert to GENERAL fare. This ticket-level interpretation) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 316.29 Tm (makes the partial-cancellation rule observable.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 299.09 Tm (* Confirmed refund percentage is treated as the refund rate, subject to the class minimum) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 285.89 Tm (deduction: refund is fare minus the larger of the minimum deduction or the unreimbursed) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 272.69 Tm (percentage. Sample minimum deductions and fare slabs are configurable examples because exact) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 259.49 Tm (values were not supplied.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 230.29 Tm (Domain model) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 197.29 Tm (* Train: ordered stations with cumulative distances, departure timestamp, classes, coaches, berth) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 184.09 Tm (layouts, quotas, fare slabs, and class refund minimums.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 166.89 Tm (* Berth: physical berth ID, coach, class, berth type, a per-route-edge occupancy counter, and an) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 153.69 Tm (allocation ledger.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 136.49 Tm (* Booking: booking ID, class/quota, journey, timestamps, passengers, amount paid, current repriced) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 123.29 Tm (fare, refunds, and cancellation state.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 106.09 Tm (* Passenger: passenger ID, name, age, gender, berth preference, current status, coach/berth or RAC) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 92.89 Tm (pair, fare, and refund.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 614.89 Tm (Build a deterministic, command-file driven reservation engine in Java 17+ \(alongside the original) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 600.89 Tm (Node.js 20+ prototype\) for one train on a fixed 12-station route. Train layout, class capacities,) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 586.89 Tm (quotas, fare slabs, reservation fees, and cancellation minimums are configured in data/train.json.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 572.89 Tm (Commands execute in chronological timestamp order and each command emits a deterministic JSON) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 558.89 Tm (event with passenger status snapshots.) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 526.89 Tm (Assumptions and configuration) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 493.89 Tm (* Command timestamps are ISO-8601 with an explicit timezone offset \(or Z\) and must be) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 480.69 Tm (chronological.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 463.49 Tm (* Tatkal opens 24 hours before the configured departure; requests earlier than that window are) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 450.29 Tm (rejected.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 433.09 Tm (* Quota counts are confirmed passenger limits tracked per class and quota \(GENERAL, LADIES,) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 419.89 Tm (SENIOR, TATKAL\) and do not create extra physical berths.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 402.69 Tm (* RAC capacity is max\(1, floor\(berths 10%\)\) passengers per class. Waitlist capacity uses max\(1,) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 389.49 Tm (floor\(berths 30%\)\) passengers per class.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 372.29 Tm (* A passenger under 12 must be booked with an adult aged 18 or older. A passenger under five) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 359.09 Tm (receives NO_BERTH, pays zero fare, and remains attached to that adult ticket.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 341.89 Tm (* Senior quota concession applies to active passengers on the SENIOR ticket while at least one) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 328.69 Tm (qualifying senior \(M >= 60 or F >= 58\) remains \(40% off base fare for men, 50% for women\). If the) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 315.49 Tm (last qualifying senior is cancelled, remaining passengers revert to GENERAL fare.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 298.29 Tm (* Confirmed refund percentage is subject to the class minimumDeduction: refund is fare minus) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 285.09 Tm (max\(minimumDeduction, round\(fare * \(1 - refundRate\)\)\), and cumulative booking refunds are bounded) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 271.89 Tm (by totalPaid.) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 242.69 Tm (Domain model) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 209.69 Tm (* TrainDefinition: 12 ordered stations with strictly increasing cumulative distances, departure) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 196.49 Tm (instant, classes, coaches, berth layouts, quotas, fare slabs, reservation fees, and minimum) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 183.29 Tm (deductions.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 166.09 Tm (* Berth: physical berth ID \(<coach>-<01..>\), coach ID, class code, BerthType, a 64-bit) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 152.89 Tm (occupiedMask, an int[] edgeOccupancy array over route edges, and an active Allocation ledger.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 135.69 Tm (* Trip: half-open station edge interval [start, end\) with precomputed long segmentMask.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 118.49 Tm (* Booking: booking ID, class/quota, journey Trip, timestamp, ordered passengers, totalPaid,) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 105.29 Tm (currentFare, refunded, and cancellation status.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 88.09 Tm (* Passenger: ID, name, age, gender, optional berth preference, current PassengerStatus \(CNF, RAC,) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 74.89 Tm (WL, NO_BERTH, CANCELLED\), berth/coach or RacPair, fare, and refund.) Tj ET
 0.84 0.88 0.92 RG 0.7 w 60 45 m 535 45 l S
 BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 60 31 Tm (Design specification) Tj ET
 BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 493 31 Tm (Page 1) Tj ET
@@ -65,52 +66,49 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
 endobj
 7 0 obj
-<< /Length 5899 >>
+<< /Length 5350 >>
 stream
 q
 0.09 0.24 0.38 rg
 60 788 475 34 re f
 BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 72 805 Tm (SJ03-PS-003  |  RESERVATION ENGINE DESIGN) Tj ET
-BT /F1 8 Tf 1 1 1 rg 1 0 0 1 468 805 Tm (Node.js 20+) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 737.89 Tm (* RAC pair: one side-lower berth shared by up to two passengers. Its occupied segments are the) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 724.69 Tm (union of both journeys.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 707.49 Tm (* Queues: stable insertion-order RAC and WL queues for each class. Inactive entries remain in the) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 694.29 Tm (log but are filtered by current status.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 665.09 Tm (Segment availability data structure and complexity) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 632.09 Tm (A journey from route station index i to j uses edge indices [i, j\). Each berth stores a Uint8Array) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 618.09 Tm (with one counter per route edge and a ledger of its active allocations. A candidate trip fits when) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 604.09 Tm (each edge counter is zero. A confirmed passenger increments each occupied edge; cancellation) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 590.09 Tm (decrements those edges. A RAC pair contributes one allocation whose edges are the union of its) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 576.09 Tm (members' trips. This permits A to B and B to C to reuse one berth because their edge sets do not) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 562.09 Tm (overlap.) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 539.09 Tm (For B berths and L edges in a candidate journey, a full berth search is O\(BL\); checking one berth) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 525.09 Tm (is O\(L\). Adding, releasing, or changing an allocation is O\(L\). Occupancy storage is O\(BR\), where R) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 511.09 Tm (is 11 route edges; the allocation ledger adds O\(AR\) in the worst case for A active allocations.) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 497.09 Tm (Since the route is fixed, R is small and bounded. The counter plus ledger design makes overlap) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 483.09 Tm (checks fast while retaining enough detail for safe partial release and audit logs.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 451.09 Tm (Booking and family allocation) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 418.09 Tm (The engine validates stations, route order, class, quota, passenger count, IDs, age/gender, quota) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 404.09 Tm (eligibility, Tatkal window, and child/adult grouping before accepting a booking. Confirmed) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 390.09 Tm (allocation uses quota capacity and physical segment availability. Lower berths are considered) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 376.09 Tm (first for men aged 60+ and women aged 45+; other preferences are best effort. The engine first) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 362.09 Tm (tries to place the complete party in one coach. If that fails, each under-12 child and adult) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 348.09 Tm (guardian are allocated together in one coach; if no compatible allocation exists, the) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 334.09 Tm (child/guardian group stays in the same waiting path rather than being split. Remaining adults are) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 320.09 Tm (allocated in priority and booking order.) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 297.09 Tm (After confirmed allocation, the booking is planned for RAC up to the passenger limit. RAC requests) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 283.09 Tm (use a free segment-compatible side-lower berth or an open pair slot. Two RAC passengers may share) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 269.09 Tm (one pair even when their journey segments overlap; that pair blocks a confirmed allocation on) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 255.09 Tm (every edge used by either passenger. Remaining passengers enter WL if the class limit allows. A) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 241.09 Tm (booking that would exceed WL capacity is rejected atomically and any temporary confirmed) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 227.09 Tm (allocations are released.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 195.09 Tm (Cancellation and promotion) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 162.09 Tm (Full or partial cancellation validates the target passengers and prevents a partial cancellation) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 148.09 Tm (from leaving an under-12 child without an adult. Confirmed allocations release only their own edge) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 134.09 Tm (intervals; a RAC cancellation updates the shared pair without disturbing its other passenger. The) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 120.09 Tm (engine then scans RAC in queue order for the earliest passenger whose journey fits a full berth,) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 106.09 Tm (skipping passengers that do not fit. It next scans WL in order for passengers who can fit an) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 92.09 Tm (available RAC pair or side-lower berth. Every promotion records passenger ID, old/new state, berth) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 78.09 Tm (or pair, timestamp, and reason.) Tj ET
+BT /F1 8 Tf 1 1 1 rg 1 0 0 1 430 805 Tm (Java 17+ / Node 20+) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 737.89 Tm (* RacPair: one SIDE_LOWER berth shared by up to two RAC passengers whose Allocation occupies the) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 724.69 Tm (union of both members' segment masks.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 707.49 Tm (* Queues: stable FIFO insertion-order RAC and WL queues per class.) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 678.29 Tm (Segment availability data structure and complexity) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 645.29 Tm (A journey from route station index i to j occupies half-open route edges [i, j\), encoded as a) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 631.29 Tm (64-bit long segmentMask = \(\(1L << \(j - i\)\) - 1L\) << i. Because endpoints are not occupied edges, A) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 617.29 Tm (to B and B to C have disjoint masks \(\(maskAB & maskBC\) == 0L\) and legally reuse the same physical) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 603.29 Tm (berth.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 580.29 Tm (Each Berth pairs this 64-bit occupiedMask with an int[] edgeOccupancy counter array \(R = 11 edges\)) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 566.29 Tm (and an active List<Allocation> ledger:) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 546.29 Tm (* Availability check on one berth: \(berth.occupiedMask\(\) & trip.segmentMask\(\)\) == 0L runs in O\(1\)) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 533.09 Tm (time.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 515.89 Tm (* Class-wide berth search across B berths: O\(B\) bitwise checks \(plus O\(B log B\) sorting when) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 502.69 Tm (ranking preferences\).) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 485.49 Tm (* Open RAC-pair conflict check: berth.fitsIgnoring\(candidateMask, pair.allocation\(\)\) verifies that) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 472.29 Tm (joining an open RacPair does not overlap with any non-RAC CNF allocation sharing non-overlapping) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 459.09 Tm (segments of the same SIDE_LOWER berth, in O\(A_berth\) \(<= 11 segments on one berth\).) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 441.89 Tm (* Allocation / release / RAC mask recomputation: O\(L\) over L = j - i <= 11 edges.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 424.69 Tm (* Space complexity: O\(B\) bitmasks + O\(BR + A\) counters and active allocations.) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 395.49 Tm (Booking and family allocation) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 362.49 Tm (Before mutating inventory, ReservationEngine validates stations, route order, class, quota, 1-6) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 348.49 Tm (passenger count, unique IDs, age/gender, LADIES/SENIOR eligibility, Tatkal 24h window, and) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 334.49 Tm (under-12 adult accompaniment.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 311.49 Tm (Confirmed \(CNF\) allocation in AllocationPlanner respects quota limits and physical segment fit:) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 291.49 Tm (1. Lower berths are prioritized for men aged 60+ and women aged 45+; explicit preferences are) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 277.49 Tm (honored best-effort in priority/booking order.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 257.49 Tm (2. When selecting CNF berths, SIDE_LOWER berths receive a score penalty \(unless explicitly) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 243.49 Tm (requested\) so SIDE_LOWER inventory stays available for RAC pairs as long as regular berths exist.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 223.49 Tm (3. Multi-passenger bookings try placing the whole party in the highest-scoring single coach first.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 209.49 Tm (If that fails, children \(5..11\) are balanced across adults \(18+\) into family units and each unit) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 195.49 Tm (is placed together in one coach or kept together in the RAC/WL path rather than splitting an) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 181.49 Tm (under-12 child from their adult guardian.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 158.49 Tm (Remaining PENDING passengers are planned atomically into RAC \(joining open RacPair slots that have) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 144.49 Tm (no non-RAC berth conflicts, or allocating free SIDE_LOWER berths up to the 10% limit\) and then WL) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 130.49 Tm (\(up to the 30% limit\). If admitting the waitlist portion would exceed the class WL limit,) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 116.49 Tm (temporary CNF allocations are rolled back and the booking is rejected atomically.) Tj ET
 0.84 0.88 0.92 RG 0.7 w 60 45 m 535 45 l S
 BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 60 31 Tm (Design specification) Tj ET
 BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 493 31 Tm (Page 2) Tj ET
@@ -121,52 +119,49 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 7 0 R >>
 endobj
 9 0 obj
-<< /Length 5638 >>
+<< /Length 5463 >>
 stream
 q
 0.09 0.24 0.38 rg
 60 788 475 34 re f
 BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 72 805 Tm (SJ03-PS-003  |  RESERVATION ENGINE DESIGN) Tj ET
-BT /F1 8 Tf 1 1 1 rg 1 0 0 1 468 805 Tm (Node.js 20+) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 737.89 Tm (On partial cancellation, the remaining active ticket is repriced. The original paid amount and) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 723.89 Tm (cumulative refunds remain in the booking ledger; currentFare exposes the fare for the remaining) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 709.89 Tm (active passengers.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 677.89 Tm (Fare and refund model) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 644.89 Tm (Base fare is the configured rate-per-km slab multiplied by chargeable distance. AC classes use a) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 630.89 Tm (200 km minimum. Add the class reservation fee after quota adjustment and apply 5% GST to AC) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 616.89 Tm (totals. Tatkal adds 30% to base fare and disables all concessions. A SENIOR ticket with an active) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 602.89 Tm (qualifying senior receives the ticket-level gender concession described above. Children under five) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 588.89 Tm (pay nothing.) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 565.89 Tm (For confirmed cancellations, refund rates are 75% at 48 hours or more, 50% from 12 to under 48) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 551.89 Tm (hours, 25% from 4 to under 12 hours, and zero under 4 hours or after chart. The configured class) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 537.89 Tm (minimum deduction is applied as described in Assumptions. Confirmed Tatkal cancellation refunds) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 523.89 Tm (zero. RAC/WL cancellation at least 30 minutes before departure returns fare less Rs 60. Any WL) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 509.89 Tm (passenger still waiting after chart is auto-cancelled with a full refund.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 477.89 Tm (Chart preparation) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 444.89 Tm (Chart preparation is accepted from departure minus four hours until departure. Segment-compatible) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 430.89 Tm (RAC passengers receive vacant full berths first. Unused LADIES, SENIOR, and TATKAL confirmed-quota) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 416.89 Tm (capacity is released to GENERAL. General waitlisted passengers are then assigned confirmed berths) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 402.89 Tm (in order when both quota capacity and a compatible physical berth remain; remaining WL passengers) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 388.89 Tm (are auto-cancelled with full fare refunds. Output includes coach/berth placement, any RAC pair) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 374.89 Tm (that remains, final waitlist, auto-cancelled WL records, released quota counts, and no-berth) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 360.89 Tm (passengers.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 328.89 Tm (Business rules registry) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 295.89 Tm (* BR-01 - Segment availability: a berth is available only if every edge in the requested journey) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 282.69 Tm (interval is free. Different passengers may use non-overlapping edges; adjacent journeys sharing a) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 269.49 Tm (station are compatible.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 252.29 Tm (* BR-02 - Lower berth priority: men aged 60+ and women aged 45+ are considered first for lower) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 239.09 Tm (berths. Other preferences are best effort in booking order.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 221.89 Tm (* BR-03 - Family allocation: allocate a party in one coach where possible. Never separate an) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 208.69 Tm (under-12 child from an adult aged 18+ in the booking allocation path.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 191.49 Tm (* BR-04 - Ladies quota: LADIES bookings contain only female passengers; unused LADIES quota is) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 178.29 Tm (released to GENERAL at chart.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 161.09 Tm (* BR-05 - Senior quota/concession: SENIOR booking includes a man aged 60+ or woman aged 58+. While) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 147.89 Tm (a qualifying senior remains on the ticket, base fare concessions are 40% for men and 50% for) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 134.69 Tm (women.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 117.49 Tm (* BR-06 - Tatkal: opens 24 hours before departure, adds 30% to base fare, provides no concession,) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 104.29 Tm (and confirmed Tatkal cancellations have no refund.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 87.09 Tm (* BR-07 - RAC: up to two RAC passengers share one side-lower pair; RAC passenger capacity is 10%) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 73.89 Tm (of class berths, with a minimum one place for small layouts.) Tj ET
+BT /F1 8 Tf 1 1 1 rg 1 0 0 1 430 805 Tm (Java 17+ / Node 20+) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 728.89 Tm (Cancellation and promotion) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 695.89 Tm (Full or partial cancellation validates passenger IDs and rejects any partial cancellation that) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 681.89 Tm (would leave an under-12 child without an adult 18+. Confirmed allocations release only their own) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 667.89 Tm (segment masks; cancelling one member of an RAC pair recalculates the pair's union mask while) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 653.89 Tm (leaving the surviving member intact on the SIDE_LOWER berth \(RAC rather than premature) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 639.89 Tm (self-promotion before chart\), opening the second RAC slot for waitlisted passengers.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 616.89 Tm (Pre-chart cancellation triggers ordered promotion \(RAC to CNF, then WL to RAC\):) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 596.89 Tm (* RAC to CNF: scans the class RAC queue in insertion order for passengers within their quota's) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 583.69 Tm (remaining capacity whose segments fit a vacant full berth \(excluding their own active RacPair) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 570.49 Tm (berth\), skipping candidates whose journey does not fit and respecting under-12 guardian) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 557.29 Tm (co-location.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 540.09 Tm (* WL to RAC: scans waitlist units in insertion order for the earliest segment-compatible unit that) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 526.89 Tm (fits an open RacPair \(conflict-checked against any CNF allocations on that berth\) or a vacant) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 513.69 Tm (SIDE_LOWER berth. If the RAC queue is empty and no SIDE_LOWER berth is free, quota-eligible WL) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 500.49 Tm (units may claim a vacant full berth directly so cancelled berths are not stranded.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 483.29 Tm (* On partial cancellation, FareCalculator.reprice updates active passenger fares and currentFare.) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 454.09 Tm (Fare and refund model) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 421.09 Tm (Base fare equals the configured distance-slab ratePerKm multiplied by chargeable distance) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 407.09 Tm (\(max\(200, rawDistance\) km for AC classes 3A and 2A\). Tatkal multiplies base fare by 1.3 and) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 393.09 Tm (disables all concessions; active SENIOR tickets multiply base fare by 0.6 \(male\) or 0.5 \(female\).) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 379.09 Tm (Reservation fee \(Rs 20 SL, Rs 40 3A, Rs 60 2A\) is added, 5% GST is applied to AC totals, and) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 365.09 Tm (totals are rounded HALF_UP to nearest integer rupees. Children under five pay zero.) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 342.09 Tm (Confirmed cancellation refunds use 75% \(>= 48h\), 50% \(12-48h\), 25% \(4-12h\), and 0 \(< 4h or) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 328.09 Tm (post-chart\), with class minimumDeduction enforced. Confirmed TATKAL cancellation yields zero) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 314.09 Tm (refund. RAC/WL cancellations deduct Rs 60 up to 30 minutes before departure \(0 thereafter\).) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 300.09 Tm (Remaining WL passengers after chart are auto-cancelled with full fare refunds.) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 268.09 Tm (Chart preparation) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 235.09 Tm (Chart preparation is accepted from 4 hours before departure until departure \(0 <= seconds <=) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 221.09 Tm (14400\):) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 201.09 Tm (1. Snapshot unfilled quota counts per class \(LADIES, SENIOR, TATKAL\) and release them into the) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 187.09 Tm (GENERAL pool \(availableSlots bounded by totalClassQuota - totalActiveCnf so RAC promotions and WL) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 173.09 Tm (confirmations share one consistent pool without double counting\).) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 153.09 Tm (2. Promote segment-compatible RAC passengers to CNF \(allowing solo RAC members or co-located) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 139.09 Tm (family pairs to upgrade onto their SIDE_LOWER berth when no regular berth remains\).) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 119.09 Tm (3. Confirm compatible GENERAL waitlist units in FIFO order from availableSlots \(followed by any) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 105.09 Tm (remaining waitlist units if slots remain\).) Tj ET
 0.84 0.88 0.92 RG 0.7 w 60 45 m 535 45 l S
 BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 60 31 Tm (Design specification) Tj ET
 BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 493 31 Tm (Page 3) Tj ET
@@ -177,50 +172,49 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 9 0 R >>
 endobj
 11 0 obj
-<< /Length 5315 >>
+<< /Length 5270 >>
 stream
 q
 0.09 0.24 0.38 rg
 60 788 475 34 re f
 BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 72 805 Tm (SJ03-PS-003  |  RESERVATION ENGINE DESIGN) Tj ET
-BT /F1 8 Tf 1 1 1 rg 1 0 0 1 468 805 Tm (Node.js 20+) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 737.89 Tm (* BR-08 - Waitlist: WL passenger capacity is 30% of class berths, with a minimum one place for) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 724.69 Tm (small layouts. The exact limit is accepted; requests beyond it fail. Post-chart WL is) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 711.49 Tm (auto-cancelled with full refund.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 694.29 Tm (* BR-09 - Promotion order: earliest segment-compatible RAC promotes to CNF; if it does not fit,) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 681.09 Tm (scan later RAC entries. Then promote the earliest compatible WL passenger to RAC, preserving order) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 667.89 Tm (among compatible candidates.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 650.69 Tm (* BR-10 - Fare: class/distance-slab rate chargeable distance, with a 200 km AC minimum;) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 637.49 Tm (reservation fee SL Rs 20, 3A Rs 40, 2A Rs 60; AC GST is 5%.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 620.29 Tm (* BR-11 - Refund: confirmed refund bands and configured class minimum deduction apply; RAC/WL) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 607.09 Tm (refunds subtract Rs 60 up to 30 minutes before departure; after-chart confirmed cancellation is) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 593.89 Tm (nil.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 576.69 Tm (* BR-12 - Partial cancellation repricing: recompute SENIOR ticket concessions after each) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 563.49 Tm (cancellation. If its only qualifying senior leaves, the remaining ticket is priced at GENERAL) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 550.29 Tm (fare.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 521.09 Tm (Command and output contract) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 488.09 Tm (Commands are JSON objects with a command type and ISO timestamp at. book uses id, class, from, to,) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 474.09 Tm (quota, and 1-6 passengers; cancel uses bookingId and optional passengerIds; status uses bookingId;) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 460.09 Tm (chart prepares the final chart. The CLI emits one deterministic JSON object per command, with) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 446.09 Tm (errors isolated to the failing command so later commands can continue.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 414.09 Tm (Validation and limits) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 381.09 Tm (The engine rejects malformed train definitions, unknown stations/classes/quotas, invalid route) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 367.09 Tm (order, invalid passenger counts, duplicate IDs, invalid passenger age/gender, LADIES/SENIOR) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 353.09 Tm (eligibility violations, Tatkal requests outside the window, and out-of-order commands. The stretch) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 339.09 Tm (goals of multiple trains, shared passenger ledger, and demand-based dynamic fare pricing are not) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 325.09 Tm (part of this single-train implementation.) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 293.09 Tm (Status lifecycle and audit output) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 260.09 Tm (* CNF has a coach and berth ID and contributes an allocation to that berth's edge counters.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 242.89 Tm (* RAC references a side-lower pair. The pair has capacity two and retains both passenger IDs and) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 229.69 Tm (the union of their occupied edges.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 212.49 Tm (* WL is retained in stable command order until promoted or chart auto-cancellation.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 195.29 Tm (* NO_BERTH is the under-five child state. It has no fare or berth and follows the adult ticket at) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 182.09 Tm (chart.) Tj ET
-BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 164.89 Tm (* CANCELLED is terminal and retains the passenger's refund record.) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 144.69 Tm (The command runner emits the event result after every successful operation. Booking/status) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 130.69 Tm (responses include passenger status, berth/coach, RAC pair, fare, and refund. Cancellation) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 116.69 Tm (responses include the refund delta and ordered promotions. A chart response includes release) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 102.69 Tm (counts, final coach placement, auto-cancelled WL records, and any remaining WL/RAC details.) Tj ET
+BT /F1 8 Tf 1 1 1 rg 1 0 0 1 430 805 Tm (Java 17+ / Node 20+) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 737.89 Tm (4. Auto-cancel any remaining WL passengers with full fare refund, cancel orphaned NO_BERTH infants) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 723.89 Tm (whose guardians did not clear the chart, and emit the complete coach chart, final waitlist, and) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 709.89 Tm (promotion log.) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 677.89 Tm (Business rules registry) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 644.89 Tm (* BR-01 - Segment availability: a berth is available for A to B only if every edge in [A, B\) is) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 631.69 Tm (unoccupied; A to B and B to C share endpoints legally on one berth.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 614.49 Tm (* BR-02 - Lower berth priority: men 60+ and women 45+ receive LOWER berth priority first; other) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 601.29 Tm (preferences are best-effort in booking order, while SIDE_LOWER berths are deprioritized for CNF to) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 588.09 Tm (preserve RAC inventory.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 570.89 Tm (* BR-03 - Family allocation: parties are placed in the highest-scoring single coach where) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 557.69 Tm (possible; an under-12 child is never split from an adult 18+ across allocation, cancellation, or) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 544.49 Tm (promotion paths.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 527.29 Tm (* BR-04 - Ladies quota: LADIES accepts all-female tickets only; unfilled LADIES quota converts to) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 514.09 Tm (GENERAL at chart.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 496.89 Tm (* BR-05 - Senior quota/concession: SENIOR requires at least one man 60+ or woman 58+; active) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 483.69 Tm (tickets receive 40% \(men\) / 50% \(women\) concession on base fare.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 466.49 Tm (* BR-06 - Tatkal: opens 24h before departure, adds 30% base fare premium, allows no concessions,) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 453.29 Tm (and grants zero refund on confirmed cancellation.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 436.09 Tm (* BR-07 - RAC: two RAC passengers share one SIDE_LOWER berth; RAC capacity is 10% of class berths) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 422.89 Tm (\(min 1\); RAC passengers receive full berths at chart if vacancies permit.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 405.69 Tm (* BR-08 - Waitlist: WL capacity is 30% of class berths \(min 1\); exact limit succeeds and bookings) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 392.49 Tm (beyond fail atomically; post-chart WL auto-cancels with full refund.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 375.29 Tm (* BR-09 - Promotion order: earliest segment-compatible RAC to CNF \(skipping non-fitting trips\),) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 362.09 Tm (then earliest compatible WL to RAC, with every promotion logged.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 344.89 Tm (* BR-10 - Fare: distance-slab rate chargeable distance \(200 km AC min\), reservation fee) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 331.69 Tm (\(20/40/60\), and 5% GST on AC only.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 314.49 Tm (* BR-11 - Refund: confirmed bands \(48h+ 75%, 12-48h 50%, 4-12h 25%, <4h/post-chart nil\) with class) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 301.29 Tm (minimum deduction; RAC/WL flat Rs 60 deduction up to 30m before departure.) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 284.09 Tm (* BR-12 - Partial cancellation repricing: recompute SENIOR concessions after each cancellation;) Tj ET
+BT /F1 9.1 Tf 0.12 0.18 0.24 rg 1 0 0 1 74 270.89 Tm (losing the last qualifying senior reverts remaining passengers to GENERAL fare.) Tj ET
+BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 241.69 Tm (Verification coverage) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 208.69 Tm (The Java 17+ test suite \(test/java/com/sj03/reservation/ReservationEngineTest.java\) verifies 25) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 194.69 Tm (comprehensive test cases covering BR-01..BR-12, all 7 explicit edge cases, RAC/quota/chart fixes,) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 180.69 Tm (end-to-end execution of data/commands.json, and a deterministic 120-booking + 25-cancellation) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 166.69 Tm (6-day simulation checking segment, quota, capacity, and refund invariants. The original 18-test) Tj ET
+BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 152.69 Tm (Node.js suite \(npm test\) remains green alongside it.) Tj ET
 0.84 0.88 0.92 RG 0.7 w 60 45 m 535 45 l S
 BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 60 31 Tm (Design specification) Tj ET
 BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 493 31 Tm (Page 4) Tj ET
@@ -230,53 +224,23 @@ endobj
 12 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 11 0 R >>
 endobj
-13 0 obj
-<< /Length 1958 >>
-stream
-q
-0.09 0.24 0.38 rg
-60 788 475 34 re f
-BT /F2 8.5 Tf 1 1 1 rg 1 0 0 1 72 805 Tm (SJ03-PS-003  |  RESERVATION ENGINE DESIGN) Tj ET
-BT /F1 8 Tf 1 1 1 rg 1 0 0 1 468 805 Tm (Node.js 20+) Tj ET
-BT /F2 18 Tf 0.09 0.24 0.38 rg 1 0 0 1 62 728.89 Tm (Verification coverage) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 695.89 Tm (The built-in Node test suite covers adjacent journey reuse, senior lower berth preference, family) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 681.89 Tm (coach grouping, Ladies quota validation, senior and Tatkal fares, distance slabs, child under five) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 667.89 Tm (handling, last-station route rejection, exact waitlist capacity, partial senior-ticket repricing,) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 653.89 Tm (RAC pair cancellation, fit-aware promotion to a side-lower pair, chart quota release, full WL) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 639.89 Tm (refunds, infant guardian cancellation, and chronological command validation. Run it with npm test;) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 625.89 Tm (run the command-file demonstration with npm start.) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 602.89 Tm (The sample fares, minimum deductions, coach counts, and quota counts are intentionally) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 588.89 Tm (configuration data. Replace them with official sample values when those files arrive. The) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 574.89 Tm (repository includes a command runner and editable diagram; the hidden evaluation dataset and a) Tj ET
-BT /F1 9.4 Tf 0.12 0.18 0.24 rg 1 0 0 1 62 560.89 Tm (hosted five-minute demo video link are not available in the assignment brief yet.) Tj ET
-0.84 0.88 0.92 RG 0.7 w 60 45 m 535 45 l S
-BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 60 31 Tm (Design specification) Tj ET
-BT /F1 8 Tf 0.38 0.45 0.54 rg 1 0 0 1 493 31 Tm (Page 5) Tj ET
-Q
-endstream
-endobj
-14 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 13 0 R >>
-endobj
 xref
-0 15
+0 13
 0000000000 65535 f 
 0000000016 00000 n 
 0000000065 00000 n 
-0000000149 00000 n 
-0000000246 00000 n 
-0000000348 00000 n 
-0000005281 00000 n 
-0000005423 00000 n 
-0000011374 00000 n 
-0000011516 00000 n 
-0000017206 00000 n 
-0000017349 00000 n 
-0000022717 00000 n 
-0000022861 00000 n 
-0000024872 00000 n 
+0000000142 00000 n 
+0000000239 00000 n 
+0000000341 00000 n 
+0000005464 00000 n 
+0000005606 00000 n 
+0000011008 00000 n 
+0000011150 00000 n 
+0000016665 00000 n 
+0000016808 00000 n 
+0000022131 00000 n 
 trailer
-<< /Size 15 /Root 1 0 R /Info << /Title (SJ03-PS-003 Design Document) /Author (SJ03-PS-003) >> >>
+<< /Size 13 /Root 1 0 R /Info << /Title (SJ03-PS-003 Design Document) /Author (SJ03-PS-003) >> >>
 startxref
-25016
+22275
 %%EOF

@@ -1,16 +1,15 @@
 # Decision Log
 
-1. **Node.js ES modules and built-in APIs.** Node 20+ supplies the runtime and test runner; no production dependencies are needed.
-2. **Per-berth edge counters plus allocation ledger.** A `Uint8Array` supports O(L) segment availability checks and allocation updates. The ledger records which passenger or RAC pair owns each edge so partial cancellation decrements only the relevant segments.
-3. **Passenger-level state inside booking-level commands.** Partial cancellation, per-passenger status, family constraints, concessions, and refunds are easier to audit when each passenger has a persistent state record.
-4. **Quota counts limit confirmed allocations.** Quotas are class passenger counts, while physical berth availability remains independent. At chart, unused non-GENERAL quota counts are released to GENERAL.
-5. **Atomic waitlist admission.** A booking that would exceed the WL cap is rejected without leaving passengers, queues, or berth allocations behind.
-6. **RAC pair allocation.** Two passengers share one side-lower pair allocation. The pair occupies the union of its passengers' segments; cancelling or promoting one member recalculates the pair without losing the other member's edges.
-7. **Fit-aware stable promotions.** Queue insertion order is preserved. Candidates that cannot use the freed journey interval are skipped so later, shorter trips can progress.
-8. **Family placement.** Try one coach for the party first, then allocate each child/adult unit together. A minor ticket must include an adult aged 18+; partial cancellation cannot leave that child without an adult.
-9. **Ticket-level SENIOR concession while eligible.** When at least one qualifying senior remains, apply 40% to each male passenger's base fare and 50% to each female passenger's base fare. This directly implements the stated rule that the ticket reverts to GENERAL fare when its only senior is removed.
-10. **Data-driven distance slabs and deductions.** Each class configures fare slabs, reservation fee, and minimum confirmed-cancellation deduction. The sample rates are illustrative until official rates are supplied.
-11. **24-hour Tatkal opening.** Interpret “one day before” as a rolling 24-hour window relative to train departure and document the assumption.
-12. **Deterministic JSON event stream.** Each successful command includes resulting passenger statuses; cancellation and chart commands also include ordered promotion logs and chart data.
-13. **Single train scope.** Multi-train ledgers and occupancy-based dynamic pricing remain the assignment's optional stretch goals.
-
+1. **Java 17+ zero-dependency implementation alongside Node.js 20+ prototype.** Added a full standard-library Java 17+ implementation (`src/main/java/...` and `test/java/...`) compilable directly with `javac --release 17` and runnable with `java`, with zero third-party jars required.
+2. **64-bit segment bitmask + edge occupancy counters + allocation ledger.** Encoding `[start, end)` as a `long` bitmask gives O(1) berth overlap checks (`(occupiedMask & tripMask) == 0L`), while `int[] edgeOccupancy` and `List<Allocation>` retain full partial-release auditability and support RAC pair union recomputation.
+3. **Passenger-level state inside booking-level commands.** Partial cancellation, per-passenger status, family constraints, concessions, and refunds are tracked on persistent `Passenger` records linked to their `Booking`.
+4. **Quota counts limit confirmed allocations pre-chart.** Pre-chart `CNF` allocations and `RAC → CNF` promotions respect each quota's capacity so unfilled `LADIES`/`SENIOR`/`TATKAL` quotas are preserved until chart conversion.
+5. **Atomic waitlist admission.** A booking exceeding the class WL cap rolls back temporary `CNF` allocations cleanly without mutating queues, berths, or IDs.
+6. **RAC pair cancellation & non-conflict checks.** When one member of an RAC pair cancels pre-chart, the surviving member stays `RAC` on that `SIDE_LOWER` berth so the vacated slot admits `WL → RAC`; joining an open `RacPair` also checks against any non-RAC `CNF` allocations on non-overlapping segments of the same berth.
+7. **SIDE_LOWER preservation for RAC.** Unless explicitly requested as `SIDE_LOWER`, `CNF` berth scoring penalizes `SIDE_LOWER` berths so they remain free for RAC sharing while regular berths are available.
+8. **Balanced family placement.** Multi-passenger parties score all coaches to pick the best single coach first; if split, children (`5..11`) are balanced across adults (`18+`) and never separated across coaches or statuses.
+9. **Fit-aware stable promotions & empty-RAC safeguard.** Queue insertion order is preserved while skipping trips that do not fit freed segments; if `RAC` is empty and no `SIDE_LOWER` is free when a `CNF` berth cancels, quota-eligible `WL` can claim the vacant berth directly.
+10. **Consistent chart quota pooling.** Unused `LADIES`, `SENIOR`, and `TATKAL` quotas are snapshotted before chart promotions and merged with remaining `GENERAL` slots (`totalClassQuota - totalActiveCnf`), preventing double counting between `RAC → CNF` and `WL → CNF`.
+11. **Ticket-level SENIOR concession while eligible.** While at least one qualifying senior (`M 60+`, `F 58+`) remains active on a `SENIOR` booking, male passengers receive `40%` and female passengers receive `50%` off base fare; removing the last senior reverts remaining fares to `GENERAL`, with total refunds capped at `totalPaid`.
+12. **24-hour Tatkal opening & exact Duration boundaries.** Interprets "1 day before" as 24 hours before departure and uses `java.time.Duration` on ISO-8601 offsets for exact 48h/24h/12h/4h/30m gates.
+13. **Single-train core scope.** Multi-train shared ledgers and occupancy-based dynamic pricing remain optional stretch goals outside the single-train CLI contract.
